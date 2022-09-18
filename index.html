@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>vue2 sourcecode</title>
+</head>
+<body>
+    <div id="app">hello</div>
+    <script src="./dist/vue.js"></script>
+    <script>
+       let vm=  new Vue({
+            el:'#app',
+            data(){
+                
+                return {
+                    msg : 'this is a msg',
+                    a:{
+                        b:20
+                    },
+                    c:[1,2,3,{a:1}]
+                }
+            },
+            props:{
+
+            },
+            watch:{
+
+            },
+            computed:{
+
+            },
+            methods:{
+                 
+            }
+        })
+        // console.log(vm._data.msg,111 );
+        // console.log(vm._data.a.b,111 );
+        // vm._data.msg =  'this is not a msg'
+        // vm._data.a.b =  10
+        vm._data.c.push(5)
+        console.log(vm._data.c);
+
+    </script>
+</body>
+</html>
