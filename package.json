@@ -1,0 +1,31 @@
+{
+  "name": "learn-vue2-source-code",
+  "version": "1.0.0",
+  "description": "learn the source code of vue2",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev":"rollup -c -w"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/llifangyin/learn-vue2-source-code.git"
+  },
+  "keywords": [
+    "vue2",
+    "souce-code"
+  ],
+  "author": "lifangyin",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/llifangyin/learn-vue2-source-code/issues"
+  },
+  "homepage": "https://github.com/llifangyin/learn-vue2-source-code#readme",
+  "devDependencies": {
+    "@babel/core": "^7.19.1",
+    "@babel/preset-env": "^7.19.1",
+    "rollup": "^2.79.0",
+    "rollup-plugin-babel": "^4.4.0",
+    "rollup-plugin-serve": "^2.0.1"
+  }
+}
