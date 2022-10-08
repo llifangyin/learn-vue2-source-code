@@ -39,7 +39,9 @@
     return Constructor;
   }
 
-  var oldArrayProtoMethods = Array.prototype;
+  // 获取原来的数组方法
+  var oldArrayProtoMethods = Array.prototype; // 继承 创建新的方法对象
+
   var arrMethods = Object.create(oldArrayProtoMethods);
   var methods = ['push', 'pop', "unshift", "shift", "splice"];
   methods.forEach(function (item) {
@@ -68,11 +70,14 @@
       _classCallCheck(this, Observer);
 
       if (Array.isArray(data)) {
-        data.__proto__ = arrMethods;
+        data.__proto__ = arrMethods; // 如果是对象数组，对数组对象劫持
+
+        this.observeArray(data);
       } else {
         this.walk(data);
       }
-    }
+    } // 遍历对象的属性，响应式劫持
+
 
     _createClass(Observer, [{
       key: "walk",
@@ -84,6 +89,12 @@
           var value = data[key];
           defineReactive(data, key, value);
         }
+      } // 遍历对象数组
+
+    }, {
+      key: "observeArray",
+      value: function observeArray(value) {
+        value.forEach(function (i) {});
       }
     }]);
 

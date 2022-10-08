@@ -13,10 +13,13 @@ class Observer{
     constructor(data){
         if(Array.isArray(data)){
             data.__proto__ = arrMethods
+            // 如果是对象数组，对数组对象劫持
+            this.observeArray(data)
         }else{
             this.walk(data) 
         }
     }
+    // 遍历对象的属性，响应式劫持
     walk(data){
         let keys = Object.keys(data)
         for(let i =0;i<keys.length;i++){
@@ -24,6 +27,12 @@ class Observer{
             let value = data[key]
             defineReactive(data,key,value)
         }
+    }
+    // 遍历对象数组
+    observeArray(value){
+        value.forEach(i=>{
+
+        })
     }
 
 }
