@@ -1,6 +1,7 @@
 import { arrMethods } from "./arr"
 
 export function observer(data){
+
     if(typeof data != 'object' || data == null){
         return data
     }
@@ -11,7 +12,14 @@ export function observer(data){
 
 class Observer{
     constructor(data){
+        // 定义一个属性
+        Object.defineProperty(data,'__ob__',{
+            enumerable:false,
+            value:this,//this当前实例 this.observeArray
+        })
+
         if(Array.isArray(data)){
+            // 对数组的方法进行劫持行操作
             data.__proto__ = arrMethods
             // 如果是对象数组，对数组对象劫持
             this.observeArray(data)
@@ -30,8 +38,8 @@ class Observer{
     }
     // 遍历对象数组
     observeArray(value){
-        value.forEach(i=>{
-
+        value.forEach(data=>{
+            observer(data)
         })
     }
 

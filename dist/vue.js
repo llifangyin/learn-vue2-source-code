@@ -52,7 +52,34 @@
         args[_key] = arguments[_key];
       }
 
-      var result = oldArrayProtoMethods[item].apply(this, args);
+      var result = oldArrayProtoMethods[item].apply(this, args); //this当前实例对象，
+      //observe中把类整体赋值给了__ob__可供在此调用数据劫持方法obseveArray
+      //args :push时为添加的数组参数
+      // 追加的数组对象进行数据劫持 push unshift  splice(第三个参数时新增的)
+
+      var inserted;
+
+      switch (item) {
+        case 'push':
+        case 'unshift':
+          inserted = args;
+          break;
+
+        case 'splice':
+          inserted = args.splice(2); //arr.splice(0,1,{a:6})
+
+          break;
+      } // console.log(this,'this');//当前调用的数组对象
+
+
+      var ob = this.__ob__;
+
+      if (inserted) {
+        //对添加的对象进行劫持
+        ob.observeArray(inserted);
+      }
+
+      console.log(inserted, 111);
       return result;
     };
   });
@@ -69,7 +96,15 @@
     function Observer(data) {
       _classCallCheck(this, Observer);
 
+      // 定义一个属性
+      Object.defineProperty(data, '__ob__', {
+        enumerable: false,
+        value: this //this当前实例 this.observeArray
+
+      });
+
       if (Array.isArray(data)) {
+        // 对数组的方法进行劫持行操作
         data.__proto__ = arrMethods; // 如果是对象数组，对数组对象劫持
 
         this.observeArray(data);
@@ -94,7 +129,9 @@
     }, {
       key: "observeArray",
       value: function observeArray(value) {
-        value.forEach(function (i) {});
+        value.forEach(function (data) {
+          observer(data);
+        });
       }
     }]);
 
@@ -140,8 +177,24 @@
   function initData(vm) {
     var data = vm.$options.data; // data()  this默认window 
 
-    data = vm._data = typeof data == 'function' ? data.call(vm) : data;
+    data = vm._data = typeof data == 'function' ? data.call(vm) : data; //将对象上的所有属性，代理到实例上{a:1,b:@}  defineProperty
+
+    for (var key in data) {
+      Proxy(vm, '_data', key);
+    }
+
     observer(data);
+  }
+
+  function Proxy(vm, source, key) {
+    Object.defineProperty(vm, key, {
+      get: function get() {
+        return vm[source][key];
+      },
+      set: function set(val) {
+        vm[source][key] = val;
+      }
+    });
   }
 
   function initMixin(Vue) {

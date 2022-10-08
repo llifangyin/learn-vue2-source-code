@@ -19,4 +19,8 @@ index.html 引入 打包生成的/dist/vue.js 调用new Vue使用
 
 ### 数组
 1. 函数劫持**修改__proto__** 或者 **Object.setPrototype**
-2.
+2. 对象数组遍历劫持数据
+3. 对象的方法push unshift splice(第三个参数) 添加的数据进行数据劫持
+
+### data对象代理
++ initData 中使用defineProperty 对vm._data.key 进行代理； 以便使用vm.key调用和修改

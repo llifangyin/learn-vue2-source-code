@@ -25,9 +25,23 @@ function initData(vm){
     // data()  this默认window 
     data = vm._data = typeof data == 'function'?data.call(vm):data 
 
+    //将对象上的所有属性，代理到实例上{a:1,b:@}  defineProperty
+    for(let key  in data){
+        Proxy(vm,'_data',key)    
+    }
+
     observer(data)
 }
-
+function Proxy(vm,source,key){
+    Object.defineProperty(vm,key,{
+        get(){
+            return vm[source][key]
+        },
+        set(val){
+            vm[source][key] = val
+        }
+    })
+}
 function initProps(){}
 function initWatch(){}
 function initMethods(){}

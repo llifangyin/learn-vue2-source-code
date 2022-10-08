@@ -39,8 +39,17 @@
         // console.log(vm._data.a.b,111 );
         // vm._data.msg =  'this is not a msg'
         // vm._data.a.b =  10
-        vm._data.c.push(5)
-        console.log(vm._data.c);
+
+        // 数组新增的数据进行数据劫持
+        // vm._data.c.push({b:6})
+        // vm._data.c.unshift({d:7})
+        // vm._data.c.splice(1,1,{e:8})
+
+        
+        // vm.msg = vm._data.msg
+        
+        vm.msg = 'proxy value'
+        console.log(vm.msg);
 
     </script>
 </body>
