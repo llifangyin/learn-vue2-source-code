@@ -11,11 +11,22 @@ npm install @babel/preset-env @babel/core rollup rollup-plugin-babel rollup-plug
 ## 测试
 index.html 引入 打包生成的/dist/vue.js 调用new Vue使用
 
+## 启动
+npm run dev
+
+## 初始化Vue
++ Vue对象封装 
++ Vue.prototype._init ==> initState(initProps,initData,initWatch,initMethods,initComputed)
++ Vue.prototype.$mounted
+
 ## vue2数据劫持
++ initData里 执行obsever(data)
 ### 对象
+
 1. **Object.defineProperty** 只能对象中第一个属性劫持
-2. 遍历
-3. 递归 get set 
+1. 创建Observer类，构造函数遍历对象的属性，遍历数组的对象属性。export observe （实例Obsever类）方法供调用
+2. 遍历walk对象的属性
+3. 递归defineReactive 进行Object.definProperty对象的get set 
 
 ### 数组
 1. 函数劫持**修改__proto__** 或者 **Object.setPrototype**
@@ -24,3 +35,9 @@ index.html 引入 打包生成的/dist/vue.js 调用new Vue使用
 
 ### data对象代理
 + initData 中使用defineProperty 对vm._data.key 进行代理； 以便使用vm.key调用和修改
+
+## 模板编译
+init初始化后，开始模板编译步骤详见生命周期
+1. 判断Has el Option 有直接进行下一步，没有调用vm.$mounted方法
+2. 判断Has template option ?有进行render function :没有编译模板 compile el's outerHTML as template......
+3. 获取dom,创建ast语法树

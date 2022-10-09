@@ -7,7 +7,7 @@
     <title>vue2 sourcecode</title>
 </head>
 <body>
-    <div id="app">hello</div>
+    <div id="app">hello {{msg}} </div>
     <script src="./dist/vue.js"></script>
     <script>
        let vm=  new Vue({
@@ -35,6 +35,7 @@
                  
             }
         })
+        // .$mounted("#app") == el:#app
         // console.log(vm._data.msg,111 );
         // console.log(vm._data.a.b,111 );
         // vm._data.msg =  'this is not a msg'
@@ -49,7 +50,10 @@
         // vm.msg = vm._data.msg
         
         vm.msg = 'proxy value'
-        console.log(vm.msg);
+        //  console.log(vm.msg);
+        //  vue 初次渲染的流程 ：
+        // 先初始化数据 ==> 将模板进行编译 ==> 变成render函数 ==> 生成虚拟节点 ==> 变成真实dom ==> 放到页面
+        // vue 模板编译：template render el;(el必需) render() template
 
     </script>
 </body>

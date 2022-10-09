@@ -142,12 +142,11 @@
     observer(value);
     Object.defineProperty(data, key, {
       get: function get() {
-        console.log('获取pbj');
+        // console.log('获取pbj');
         return value;
       },
       set: function set(newValue) {
-        console.log('设置obj');
-
+        // console.log('设置obj');
         if (newValue == value) {
           return;
         }
@@ -202,9 +201,49 @@
       var vm = this;
       vm.$options = options; // init 状态
 
-      initState(vm);
+      initState(vm); //渲染模板 el
+
+      if (vm.$options.el) {
+        vm.$mounted(vm.$options.el);
+      }
+    }; // 创建$moutned
+
+
+    Vue.prototype.$mounted = function (el) {
+      console.log(el); // el template render
+
+      var vm = this;
+      var options = vm.$options;
+      el = document.querySelector(el); // 没有render函数
+
+      if (!options.render) {
+        var template = options.template; // 没有template option 
+        // 则 Compile el's outerHTML as template *
+
+        if (!template && el) {
+          // 获取Html
+          el = el.outerHTML; //html字符串
+          // <div id="app">hello {{msg}} </div>
+
+          console.log(el);
+        }
+      }
     };
+  } // ast语法树 {} 操作节点 css js
+  //  vnode {}操作节点
+  // <div id="app">hello {{msg}} </div>
+
+  /* 
+  {
+      tag:"div",
+      attrs:[{id:"app"}],
+      children:[{
+          tag:null,
+          text:'hello{{msg}}'
+      }]
   }
+
+  */
 
   function Vue(options) {
     this._init(options);

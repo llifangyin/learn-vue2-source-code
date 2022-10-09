@@ -48,11 +48,11 @@ function defineReactive(data,key,value){
     observer(value)
     Object.defineProperty(data,key,{
         get(){
-            console.log('获取pbj');
+            // console.log('获取pbj');
             return value
         },
         set(newValue){
-            console.log('设置obj');
+            // console.log('设置obj');
             if(newValue==value){
                 return
             }
