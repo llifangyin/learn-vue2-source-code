@@ -196,6 +196,131 @@
     });
   }
 
+  // ast语法树 {} 操作节点 css js
+  //  vnode {}操作节点
+  // <div id="app">hello {{msg}} </div>
+
+  /* 
+  {
+      tag:"div",
+      attrs:[{id:"app"}],
+      children:[{
+          tag:null,
+          text:'hello{{msg}}'
+      }]
+  }
+  */
+  // 声明正则 匹配标签开头结尾 属性 
+  var ncname = "[a-zA-Z_][\\-\\.0-9_a-zA-Z]*"; //标签名 a h span 
+
+  var qnameCapture = "((?:".concat(ncname, "\\:)?").concat(ncname, ")"); //<span:xx> 特殊标签
+
+  var startTagOpen = new RegExp("^<".concat(qnameCapture)); //标签开头的正则，捕获的内容是标签名
+
+  var endTag = new RegExp("^<\\/".concat(qnameCapture, "[^>]*>")); //匹配标签结尾的</div>
+  // attr='xxx'
+
+  var attribute = /^\s*([^\s"'<>\/=]+)(?:\s*(=)\s*(?:"([^"]*)"+|'([^']*)'+|([^\s"'=<>`]+)))?/;
+  var startTagClose = /^\s*(\/?)>/; //匹配标签结束时的>
+
+
+  function start(tag, attrs) {
+    console.log(tag, attrs, '开始标签');
+  } // 文本
+
+
+  function charts(text) {
+    console.log(text, '文本');
+  }
+
+  function end(tag) {
+    console.log(tag, '结束标签');
+  } // 解析html
+  // 遍历
+
+
+  function parseHTML(html) {
+    // 开始标签 文本 结束标签
+    // 一层层的剥离html的内容
+    while (html) {
+      var textEnd = html.indexOf('<'); //有0 无-1
+
+      if (textEnd === 0) {
+        // 1开始标签    
+        var startTagMatch = parseStartTag(); //开始标签的内容
+
+        if (startTagMatch) {
+          start(startTagMatch.tagName, startTagMatch.attrs);
+          continue;
+        } // 2结束标签
+
+
+        var endTagMatch = html.match(endTag); // console.log(endTagMatch,'endTagMatch');
+
+        if (endTagMatch) {
+          advance(endTagMatch[0].length);
+          end(endTagMatch[1]);
+          continue;
+        }
+      }
+
+      var text = void 0; // 文本
+
+      if (textEnd > 0) {
+        // console.log(html);
+
+        text = html.substring(0, textEnd); // console.log(text);
+      }
+
+      if (text) {
+        advance(text.length);
+        charts(text); // console.log(html);
+      } // break;
+
+    }
+
+    function parseStartTag() {
+      var start = html.match(startTagOpen); //1结果 2false
+
+      console.log(start);
+      if (!start) return false; // 创建ast语法树
+
+      var match = {
+        tagName: start[1],
+        attrs: []
+      }; // 删除开始标签
+
+      advance(start[0].length); // 遍历属性,结束标签>
+
+      var attr, end;
+
+      while (!(end = html.match(startTagClose)) && (attr = html.match(attribute))) {
+        // console.log(end);
+        // console.log(attr);
+        match.attrs.push({
+          name: attr[1],
+          value: attr[3] || attr[4] || attr[5]
+        });
+        advance(attr[0].length);
+      }
+
+      console.log(end);
+
+      if (end) {
+        advance(end[0].length);
+        return match;
+      }
+    }
+
+    function advance(n) {
+      html = html.substring(n); // console.log(html);
+    }
+  }
+
+  function compileToFunction(el) {
+    parseHTML(el); // console.log(ast,'ast');
+  }
+
   function initMixin(Vue) {
     Vue.prototype._init = function (options) {
       var vm = this;
@@ -210,8 +335,8 @@
 
 
     Vue.prototype.$mounted = function (el) {
-      console.log(el); // el template render
-
+      // console.log(el);
+      // el template render
       var vm = this;
       var options = vm.$options;
       el = document.querySelector(el); // 没有render函数
@@ -224,26 +349,15 @@
           // 获取Html
           el = el.outerHTML; //html字符串
           // <div id="app">hello {{msg}} </div>
+          // 变成ast语法树
 
-          console.log(el);
+          compileToFunction(el); // render
+          // vnode
+          // console.log(el);
         }
       }
     };
-  } // ast语法树 {} 操作节点 css js
-  //  vnode {}操作节点
-  // <div id="app">hello {{msg}} </div>
-
-  /* 
-  {
-      tag:"div",
-      attrs:[{id:"app"}],
-      children:[{
-          tag:null,
-          text:'hello{{msg}}'
-      }]
   }
-
-  */
 
   function Vue(options) {
     this._init(options);

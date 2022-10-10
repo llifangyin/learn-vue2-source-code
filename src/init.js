@@ -1,4 +1,5 @@
 import { initState } from "./initState";
+import {compileToFunction} from './compile/index'
 export function initMixin(Vue){
 
     Vue.prototype._init = function(options){
@@ -15,7 +16,7 @@ export function initMixin(Vue){
 
     // 创建$moutned
     Vue.prototype.$mounted = function(el){
-        console.log(el);
+        // console.log(el);
         // el template render
         let vm = this
         let options = vm.$options
@@ -29,24 +30,14 @@ export function initMixin(Vue){
                 // 获取Html
                 el = el.outerHTML //html字符串
                 // <div id="app">hello {{msg}} </div>
+                // 变成ast语法树
+                let ast = compileToFunction(el)
 
-                console.log(el);
+                // render
+
+                // vnode
+                // console.log(el);
             }
         }
     }
 }
-
-// ast语法树 {} 操作节点 css js
-//  vnode {}操作节点
-// <div id="app">hello {{msg}} </div>
-/* 
-{
-    tag:"div",
-    attrs:[{id:"app"}],
-    children:[{
-        tag:null,
-        text:'hello{{msg}}'
-    }]
-}
-
-*/
