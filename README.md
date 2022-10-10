@@ -40,4 +40,10 @@ npm run dev
 init初始化后，开始模板编译步骤详见生命周期
 1. 判断Has el Option 有直接进行下一步，没有调用vm.$mounted方法
 2. 判断Has template option ?有进行render function :没有编译模板 compile el's outerHTML as template......
-3. 获取dom,创建ast语法树
+3. 开始编译:获取dom,创建ast语法树
+
++ 声明正则 匹配标签名,标签开始,标签结束,属性等
++ 解析HTML字符串,从前往往后一次查找
++ 先找到开始标签< ,然后调用parseStartTag 记录标签名,读取属性attrs,通过advace()删除掉标签,得到一个除了开始标签的新html字符串
++ 正则匹配标签结束位置,截取记录文本内容,最终删除文本内容.
++ 最终得到语法树的零件:开始标签,文本,结束标签

@@ -280,6 +280,7 @@
     }
 
     function parseStartTag() {
+      // 匹配开始标签
       var start = html.match(startTagOpen); //1结果 2false
 
       console.log(start);

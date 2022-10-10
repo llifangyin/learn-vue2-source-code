@@ -26,7 +26,7 @@ const defaultTagRE = /\{\{((?:.|\r?\n)+?)\}\}/g
 // 创建ast对象
 function createAstElement(tagName,attrs){
     return {
-        
+
     }
 }
 
@@ -84,6 +84,7 @@ function parseHTML(html){
         // break;
     }
     function parseStartTag(){
+        // 匹配开始标签
         const start = html.match(startTagOpen)//1结果 2false
         console.log(start);
         if(!start) return false
