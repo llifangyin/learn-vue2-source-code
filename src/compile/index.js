@@ -24,22 +24,51 @@ const startTagClose = /^\s*(\/?)>/  //匹配标签结束时的>
 const defaultTagRE = /\{\{((?:.|\r?\n)+?)\}\}/g
 
 // 创建ast对象
-function createAstElement(tagName,attrs){
+function createAstElement(tag,attrs){
     return {
-
+        tag,//元素
+        attrs,//属性
+        children:[],//子集
+        type:1,//dom 1
+        parent:null
     }
 }
 
-// 开始的标签
+let root;//根元素
+let createdParent;//当前元素父节点
+let stack=[]; //栈的数据解构 [div,h]
+
+
+// 开始的标签 添加至root 语法树解构的对象中
 function start(tag,attrs){
-    console.log(tag,attrs,'开始标签');
+    // console.log(tag,attrs,'开始标签');
+    let element = createAstElement(tag,attrs)
+    if(!root){
+        root = element
+    }
+    createdParent = element
+    stack.push(element)
 }
 // 文本
 function charts(text){
-    console.log(text,'文本');
+    // console.log(text,'文本');
+    // 空格
+    text = text.replace(/s/g,'')
+    if(text){
+        createdParent.children.push({
+            type:3,
+            text
+        })
+    }
 }
 function end(tag){
-    console.log(tag,'结束标签');
+    // console.log(tag,'结束标签');
+    let element = stack.pop()
+    createdParent = stack[stack.length-1]
+    if(createdParent){ //元素的闭合
+        element.parent = createdParent.tag
+        createdParent.children.push(element)
+    }
 }
 
 
@@ -70,7 +99,7 @@ function parseHTML(html){
         }
         let text 
         // 文本
-        if(textEnd>0){``
+        if(textEnd>0){
             // 获取文本内容
             // console.log(html);
             text = html.substring(0,textEnd)
@@ -86,7 +115,7 @@ function parseHTML(html){
     function parseStartTag(){
         // 匹配开始标签
         const start = html.match(startTagOpen)//1结果 2false
-        console.log(start);
+        // console.log(start);
         if(!start) return false
         // 创建ast语法树
         let match = {
@@ -106,7 +135,7 @@ function parseHTML(html){
             })
             advance(attr[0].length)
         }
-        console.log(end);
+        // console.log(end);
         if(end){
             advance(end[0].length)
             return match
@@ -116,8 +145,9 @@ function parseHTML(html){
        html =  html.substring(n)
         // console.log(html);
     }
+    return root
 }
 export function compileToFunction(el){
     let ast = parseHTML(el)
-    // console.log(ast,'ast');
+    console.log(ast,'ast');
 }

@@ -223,18 +223,63 @@
   var attribute = /^\s*([^\s"'<>\/=]+)(?:\s*(=)\s*(?:"([^"]*)"+|'([^']*)'+|([^\s"'=<>`]+)))?/;
   var startTagClose = /^\s*(\/?)>/; //匹配标签结束时的>
 
+  function createAstElement(tag, attrs) {
+    return {
+      tag: tag,
+      //元素
+      attrs: attrs,
+      //属性
+      children: [],
+      //子集
+      type: 1,
+      //dom 1
+      parent: null
+    };
+  }
+
+  var root; //根元素
+
+  var createdParent; //当前元素父节点
+
+  var stack = []; //栈的数据解构 [div,h]
+  // 开始的标签 添加至root 语法树解构的对象中
 
   function start(tag, attrs) {
-    console.log(tag, attrs, '开始标签');
+    // console.log(tag,attrs,'开始标签');
+    var element = createAstElement(tag, attrs);
+
+    if (!root) {
+      root = element;
+    }
+
+    createdParent = element;
+    stack.push(element);
   } // 文本
 
 
   function charts(text) {
-    console.log(text, '文本');
+    // console.log(text,'文本');
+    // 空格
+    text = text.replace(/s/g, '');
+
+    if (text) {
+      createdParent.children.push({
+        type: 3,
+        text: text
+      });
+    }
   }
 
   function end(tag) {
-    console.log(tag, '结束标签');
+    // console.log(tag,'结束标签');
+    var element = stack.pop();
+    createdParent = stack[stack.length - 1];
+
+    if (createdParent) {
+      //元素的闭合
+      element.parent = createdParent.tag;
+      createdParent.children.push(element);
+    }
   } // 解析html
   // 遍历
 
@@ -267,8 +312,8 @@
       var text = void 0; // 文本
 
       if (textEnd > 0) {
+        // 获取文本内容
         // console.log(html);
-
         text = html.substring(0, textEnd); // console.log(text);
       }
 
@@ -282,8 +327,8 @@
     function parseStartTag() {
       // 匹配开始标签
       var start = html.match(startTagOpen); //1结果 2false
+      // console.log(start);
 
-      console.log(start);
       if (!start) return false; // 创建ast语法树
 
       var match = {
@@ -303,9 +348,8 @@
           value: attr[3] || attr[4] || attr[5]
         });
         advance(attr[0].length);
-      }
+      } // console.log(end);
 
-      console.log(end);
 
       if (end) {
         advance(end[0].length);
@@ -316,10 +360,13 @@
     function advance(n) {
       html = html.substring(n); // console.log(html);
     }
+
+    return root;
   }
 
   function compileToFunction(el) {
-    parseHTML(el); // console.log(ast,'ast');
+    var ast = parseHTML(el);
+    console.log(ast, 'ast');
   }
 
   function initMixin(Vue) {
