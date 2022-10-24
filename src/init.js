@@ -1,5 +1,6 @@
 import { initState } from "./initState";
 import {compileToFunction} from './compile/index'
+import { mountComponent } from "./lifecycle";
 export function initMixin(Vue){
 
     Vue.prototype._init = function(options){
@@ -30,14 +31,15 @@ export function initMixin(Vue){
                 // 获取Html
                 el = el.outerHTML //html字符串
                 // <div id="app">hello {{msg}} </div>
-                // 变成ast语法树
-                let ast = compileToFunction(el)
-
-                // render
-
-                // vnode
-                // console.log(el);
+                // 变成ast语法树 ,将ast语法树变成render函数
+                let render = compileToFunction(el)
+                // console.log(render);
+                // (1) 将render函数变成vnode
+                options.render = render
+                // (2) 将vnode变成真实DOM放到页面中
             }
+            // 挂在组件
+            mountComponent(vm,el)
         }
     }
 }
