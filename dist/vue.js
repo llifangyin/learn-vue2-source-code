@@ -39,6 +39,65 @@
     return Constructor;
   }
 
+  function _slicedToArray(arr, i) {
+    return _arrayWithHoles(arr) || _iterableToArrayLimit(arr, i) || _unsupportedIterableToArray(arr, i) || _nonIterableRest();
+  }
+
+  function _arrayWithHoles(arr) {
+    if (Array.isArray(arr)) return arr;
+  }
+
+  function _iterableToArrayLimit(arr, i) {
+    var _i = arr == null ? null : typeof Symbol !== "undefined" && arr[Symbol.iterator] || arr["@@iterator"];
+
+    if (_i == null) return;
+    var _arr = [];
+    var _n = true;
+    var _d = false;
+
+    var _s, _e;
+
+    try {
+      for (_i = _i.call(arr); !(_n = (_s = _i.next()).done); _n = true) {
+        _arr.push(_s.value);
+
+        if (i && _arr.length === i) break;
+      }
+    } catch (err) {
+      _d = true;
+      _e = err;
+    } finally {
+      try {
+        if (!_n && _i["return"] != null) _i["return"]();
+      } finally {
+        if (_d) throw _e;
+      }
+    }
+
+    return _arr;
+  }
+
+  function _unsupportedIterableToArray(o, minLen) {
+    if (!o) return;
+    if (typeof o === "string") return _arrayLikeToArray(o, minLen);
+    var n = Object.prototype.toString.call(o).slice(8, -1);
+    if (n === "Object" && o.constructor) n = o.constructor.name;
+    if (n === "Map" || n === "Set") return Array.from(o);
+    if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen);
+  }
+
+  function _arrayLikeToArray(arr, len) {
+    if (len == null || len > arr.length) len = arr.length;
+
+    for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i];
+
+    return arr2;
+  }
+
+  function _nonIterableRest() {
+    throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method.");
+  }
+
   // 获取原来的数组方法
   var oldArrayProtoMethods = Array.prototype; // 继承 创建新的方法对象
 
@@ -222,6 +281,7 @@
 
   var attribute = /^\s*([^\s"'<>\/=]+)(?:\s*(=)\s*(?:"([^"]*)"+|'([^']*)'+|([^\s"'=<>`]+)))?/;
   var startTagClose = /^\s*(\/?)>/; //匹配标签结束时的>
+  // 创建ast对象
 
   function createAstElement(tag, attrs) {
     return {
@@ -259,8 +319,7 @@
 
   function charts(text) {
     // console.log(text,'文本');
-    // 空格
-    text = text.replace(/s/g, '');
+    text = text.replace(/a/g, ''); //去空格
 
     if (text) {
       createdParent.children.push({
@@ -364,9 +423,117 @@
     return root;
   }
 
+  //   <div id='app'>hello{{msg}}<h></h></div>
+  // render(){ //_c解析标签
+  //     return _c('div',{id:app},_v('hello'+_s(msg)),_c('h',''))
+  // }
+  // 插值表达式
+  var defaultTagRE = /\{\{((?:.|\r?\n)+?)\}\}/g;
+
+  function genProps(attrs) {
+    var str = '';
+
+    var _loop = function _loop(i) {
+      var attr = attrs[i]; // 处理style属性
+
+      var obj = {};
+
+      if (attr.name == 'style') {
+        attr.value.split(';').forEach(function (item) {
+          var _item$split = item.split(':'),
+              _item$split2 = _slicedToArray(_item$split, 2),
+              key = _item$split2[0],
+              val = _item$split2[1];
+
+          obj[key] = val;
+        });
+        attr.value = obj;
+      }
+
+      str += "".concat(attr.name, ":").concat(JSON.stringify(attr.value), ",");
+    };
+
+    for (var i = 0; i < attrs.length; i++) {
+      _loop(i);
+    }
+
+    return "{".concat(str.slice(0, -1), "}");
+  } // 处理子节点
+
+
+  function genChildren(el) {
+    var children = el.children; // console.log(children);
+
+    if (children) {
+      return children.map(function (child) {
+        return gen(child);
+      }).join(',');
+    }
+  }
+
+  function gen(node) {
+    // 元素 _c
+    if (node.type === 1) {
+      return generate(node);
+    } else {
+      //文本
+      // 1.纯文本 _v
+      // 2.插值表达式 _s
+      var text = node.text; //获取文本
+
+      if (!defaultTagRE.test(text)) {
+        // console.log(text);
+        // 普通文本
+        return "_v(".concat(JSON.stringify(text), ")");
+      } // 特殊文本 带有插值表达式 {{}} 
+
+
+      var tokens = [];
+      var lastindex = defaultTagRE.lastIndex = 0; //正则调用多次的情况lastIndex匹配过后置位0可以再次使用 {{a}} {{b}}
+
+      var match;
+
+      while (match = defaultTagRE.exec(text)) {
+        // console.log(match);
+        // hello {{msg}} dd
+        var index = match.index;
+
+        if (index > lastindex) {
+          // 添加内容
+          tokens.push(JSON.stringify(text.slice(lastindex, index)));
+        }
+
+        tokens.push("_s(".concat(match[1].trim(), ")"));
+        lastindex = index + match[0].length;
+      }
+
+      if (lastindex < text.length) {
+        tokens.push(JSON.stringify(text.slice(lastindex)));
+      } // console.log({tokens});
+
+
+      return "_v(".concat(tokens.join('+'), ")");
+    }
+  }
+
+  function generate(el) {
+    // 处理子节点
+    var children = genChildren(el); // console.log(children);
+    // 字符串模板
+
+    var code = "_c('".concat(el.tag, "',").concat(el.attrs.length ? "".concat(genProps(el.attrs)) : 'undefined').concat(children ? ",".concat(children) : '', ")"); // console.log(code);
+    // _c('div',{id:"app",style:{"color":"cyan","margin":"10px"}},_v("\n        hello "+_s(msg)+" \n        "),_c('h2',undefined,_v("张三")),_v("\n    "))
+
+    return code;
+  }
+
   function compileToFunction(el) {
-    var ast = parseHTML(el);
-    console.log(ast, 'ast');
+    // 1.将html变成ast语法树
+    var ast = parseHTML(el); // 2.将ast语法树 变成render函数
+    // (1) ast语法树变成字符串拼接 (2) 字符串变成render函数
+
+    var code = generate(ast);
+    console.log(code);
   }
 
   function initMixin(Vue) {
