@@ -17,7 +17,7 @@ npm run dev
 ## 初始化Vue
 + Vue对象封装 
 + Vue.prototype._init ==> initState(initProps,initData,initWatch,initMethods,initComputed)
-+ Vue.prototype.$mounted
++ Vue.prototype.$mounted (先初始化数据 ==> 将模板进行编译 ==> 变成render函数 ==> 生成虚拟节点 ==> 变成真实dom ==> 放到页面)
 
 ## vue2数据劫持
 + initData里 执行obsever(data)
