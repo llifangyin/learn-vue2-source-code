@@ -1,4 +1,4 @@
-
+import { patch } from "./vnode/patch"
 export function mountComponent(vm,el){
     // 更新组件的方法
     // 1.vm._render将render函数变成虚拟dom
@@ -7,6 +7,7 @@ export function mountComponent(vm,el){
 }
 export function lifecycleMixin(Vue){
     Vue.prototype._update = function(vnode){
-        
+        let vm = this
+        vm.$el = patch(vm.$el,vnode)//旧dom，虚拟dom
     }
 } 

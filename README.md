@@ -47,7 +47,7 @@ init初始化后，开始模板编译步骤详见生命周期
 + 先找到开始标签< ,然后调用parseStartTag 记录标签名,读取属性attrs,通过advace()删除掉标签,得到一个除了开始标签的新html字符串
 + 正则匹配标签结束位置,截取记录文本内容,最终删除文本内容.
 + 最终得到语法树的零件:开始标签,文本,结束标签
-4. 将ast语法树对象变为render函数（主要使用正则匹配,with函数 => _c,_s,_v）
-5. render函数变成vnode
-6. vnode 变成真实dom
+4. 将ast语法树对象变为render函数（主要使用正则匹配,with函数 => _c,_s,_v ，renderMixin里定义，定义到option上，供下一步变换vnode使用） 
+5. render函数变成vnode(调用mountComponent里的_render方法<变成vnode> ,_update方法<变成真实dom>)
+6. vnode 变成真实dom(patch里的createEl)
 7. 生命周期

@@ -540,7 +540,7 @@
     //     ) {
     //     with(this){return _c('div',{id:"app",style:{"color":"cyan","margin":"10px"}},_v("\n        hello "+_s(msg)+" \n        "),_c('h2',undefined,_v("张三")),_v("\n    "))}
     //     }
-    // with的用法
+    // with的用法 改变作用域
     // let obj = {a:1,b:2}
     // with(obj){
     //     console.log(a,b);
@@ -549,6 +549,60 @@
     return render; // 3. 将render函数变成虚拟dom vnode init.js里实现
   }
 
+  // 将虚拟dom变成真实dom
+  function patch(oldVnode, vnode) {
+    // 1 创建真实的dom
+    // console.log(oldVnode,vnode);
+    var el = createEl(vnode); // console.log(el);
+    // 2 替换 （1）获取父节点 （2） 插入当前节点 （3）老元素删除
+
+    var parentEl = oldVnode.parentNode; // console.log(parentEl);
+
+    parentEl.insertBefore(el, oldVnode.nextsibling);
+    parentEl.removeChild(oldVnode);
+    return el;
+  } // 创建真实dom
+
+  function createEl(vnode) {
+    var tag = vnode.tag;
+        vnode.data;
+        vnode.key;
+        var children = vnode.children,
+        text = vnode.text;
+
+    if (typeof tag === 'string') {
+      // 标签
+      vnode.el = document.createElement(tag);
+
+      if (children.length) {
+        children.forEach(function (child) {
+          vnode.el.appendChild(createEl(child));
+        });
+      } // for(let k in data){
+      //     if(k =='style'){
+      //         let styleStr=''
+      //         for(let l in data[k]){
+      //             styleStr += l 
+      //             styleStr += ':'
+      //             styleStr += data[k][l]
+      //             styleStr += ';'
+      //         }
+      //         vnode.el.setAttribute(k,styleStr)
+      //     }else{
+      //         vnode.el.setAttribute(k,data[k])
+      //     }
+      // }
+
+    } else {
+      vnode.el = document.createTextNode(text);
+    }
+
+    return vnode.el;
+  } // vue的渲染流程
+  // 数据初始化 => 对模板进行编译 => 变成render函数
+  //  => 通过render函数变成vnode => vnode变成真实dom
+  //  insert页面
+
   function mountComponent(vm, el) {
     // 更新组件的方法
     // 1.vm._render将render函数变成虚拟dom
@@ -556,7 +610,10 @@
     vm._update(vm._render());
   }
   function lifecycleMixin(Vue) {
-    Vue.prototype._update = function (vnode) {};
+    Vue.prototype._update = function (vnode) {
+      var vm = this;
+      vm.$el = patch(vm.$el, vnode); //旧dom，虚拟dom
+    };
   }
 
   function initMixin(Vue) {
@@ -577,7 +634,9 @@
       // el template render
       var vm = this;
       var options = vm.$options;
-      el = document.querySelector(el); // 没有render函数
+      el = document.querySelector(el);
+      vm.$el = el; // 真实dom
+      // 没有render函数
 
       if (!options.render) {
         var template = options.template; // 没有template option 
@@ -594,6 +653,8 @@
 
           options.render = render; // (2) 将vnode变成真实DOM放到页面中
         } // 挂在组件
+        // 1.vm._render将render函数变成虚拟dom
+        // 2. vm._update 将vnode变成真实dom
 
 
         mountComponent(vm);
@@ -622,7 +683,7 @@
       var render = vm.$options.render; //init.js 中定义options的render属性为render函数
 
       var vnode = render.call(this);
-      console.log(vnode);
+      return vnode;
     };
   } // 创建元素
 

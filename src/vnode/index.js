@@ -15,8 +15,7 @@ export function renderMixin(Vue){
         let vm = this
         let render = vm.$options.render //init.js 中定义options的render属性为render函数
         let vnode  = render.call(this)
-        console.log(vnode);
-
+        return vnode
     }
 }
 

@@ -22,6 +22,7 @@ export function initMixin(Vue){
         let vm = this
         let options = vm.$options
         el = document.querySelector(el)
+        vm.$el = el // 真实dom
         // 没有render函数
         if(!options.render){
             let template = options.template
@@ -39,6 +40,8 @@ export function initMixin(Vue){
                 // (2) 将vnode变成真实DOM放到页面中
             }
             // 挂在组件
+            // 1.vm._render将render函数变成虚拟dom
+            // 2. vm._update 将vnode变成真实dom
             mountComponent(vm,el)
         }
     }
