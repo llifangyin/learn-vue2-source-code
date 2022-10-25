@@ -16,12 +16,12 @@
     <script>
         Vue.Mixin({
             created:function a(){
-
+                console.log('mixin created a');
             }
         })
         Vue.Mixin({
             created:function b(){
-
+                console.log('mixin created b');
             }
         })
         
@@ -38,7 +38,7 @@
                 }
             },
             created(){
-                console.log(555);
+                console.log('created 555');
             },
             props:{
 

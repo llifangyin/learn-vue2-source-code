@@ -11,7 +11,10 @@ export const HOOKS = [
 ]
 // 策略模式
 let starts = {}
-starts.data = function(){}//合并data
+starts.data = function(parentVal,childVal){
+    return childVal
+
+}//合并data
 starts.computed = function(){}
 starts.watch = function(){}
 starts.methods = function(){}
@@ -20,7 +23,7 @@ HOOKS.forEach(hooks=>{
     starts[hooks] = mergeHooks
 })
 
-console.log(starts);
+// console.log(starts);
 function mergeHooks(parentVal,childVal){
     // console.log(parentVal,childVal);
     // {created:[a,b,c],data:[a,b]...}
@@ -36,7 +39,7 @@ function mergeHooks(parentVal,childVal){
 }
 
 export function mergeOptions(parent,child){
-    console.log(parent,child);
+    // console.log(parent,child);
     const options = {}
     // {created:[a,b,c],data:[a,b]...}
     for(let key in parent){

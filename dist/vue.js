@@ -8,7 +8,9 @@
 
     var starts = {};
 
-    starts.data = function () {}; //合并data
+    starts.data = function (parentVal, childVal) {
+      return childVal;
+    }; //合并data
 
 
     starts.computed = function () {};
@@ -20,8 +22,7 @@
 
     HOOKS.forEach(function (hooks) {
       starts[hooks] = mergeHooks;
-    });
-    console.log(starts);
+    }); // console.log(starts);
 
     function mergeHooks(parentVal, childVal) {
       // console.log(parentVal,childVal);
@@ -38,7 +39,7 @@
     }
 
     function mergeOptions(parent, child) {
-      console.log(parent, child);
+      // console.log(parent,child);
       var options = {}; // {created:[a,b,c],data:[a,b]...}
 
       for (var key in parent) {
@@ -674,24 +675,40 @@
     //  insert页面
 
     function mountComponent(vm, el) {
-      // 更新组件的方法
+      callHook(vm, 'beforeMounted'); // 更新组件的方法
       // 1.vm._render将render函数变成虚拟dom
-      // 2. vm._update 将vnode变成真实dom
+      // 2. vm._update 将vnode变成真实dom 
+
       vm._update(vm._render());
+
+      callHook(vm, 'mounted');
     }
     function lifecycleMixin(Vue) {
       Vue.prototype._update = function (vnode) {
         var vm = this;
         vm.$el = patch(vm.$el, vnode); //旧dom，虚拟dom
       };
+    } // 生命周期调用
+
+    function callHook(vm, hook) {
+      // console.log(vm);
+      var handlers = vm.$options[hook]; // [fn a,fn b,fn]
+
+      if (handlers) {
+        for (var i = 0; i < handlers.length; i++) {
+          handlers[i].call(this);
+        }
+      }
     }
 
     function initMixin(Vue) {
       Vue.prototype._init = function (options) {
         var vm = this;
-        vm.$options = options; // init 状态
+        vm.$options = mergeOptions(Vue.options, options);
+        callHook(vm, 'beforecreated'); // init 状态
 
-        initState(vm); //渲染模板 el
+        initState(vm);
+        callHook(vm, 'created'); //渲染模板 el
 
         if (vm.$options.el) {
           vm.$mounted(vm.$options.el);
