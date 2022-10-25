@@ -51,3 +51,4 @@ init初始化后，开始模板编译步骤详见生命周期
 5. render函数变成vnode(调用mountComponent里的_render方法<变成vnode> ,_update方法<变成真实dom>)
 6. vnode 变成真实dom(patch里的createEl)
 7. 生命周期
++ 定义mixin mergeOptions方法 合并created computed watch...得到{created:[a,b,c],data:[a,b]...} 格式的数据

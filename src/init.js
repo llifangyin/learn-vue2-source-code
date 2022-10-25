@@ -15,7 +15,7 @@ export function initMixin(Vue){
         }
     }
 
-    // 创建$moutned
+    // 创建$mounted
     Vue.prototype.$mounted = function(el){
         // console.log(el);
         // el template render
