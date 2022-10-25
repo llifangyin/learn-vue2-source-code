@@ -214,6 +214,52 @@
       };
     });
 
+    var id$1 = 0;
+
+    var Dep = /*#__PURE__*/function () {
+      function Dep() {
+        _classCallCheck(this, Dep);
+
+        this.id = id$1++;
+        this.subs = [];
+      } // 收集 watcher
+
+
+      _createClass(Dep, [{
+        key: "depend",
+        value: function depend() {
+          // console.log(Dep.target);
+          // 希望watcher可以存放dep 双向记忆
+          // this.subs.push(Dep.target) //转至 watcher里 addDep添加
+          Dep.target.addDep(this); //dep实例添加至target=>watcher
+        }
+      }, {
+        key: "addSub",
+        value: function addSub(watcher) {
+          this.subs.push(watcher);
+        } // 更新 watcher
+
+      }, {
+        key: "notify",
+        value: function notify() {
+          this.subs.forEach(function (watcher) {
+            watcher.update();
+          });
+        }
+      }]);
+
+      return Dep;
+    }(); // 添加watcher
+
+
+    Dep.target = null;
+    function pushTarget(watcher) {
+      Dep.target = watcher;
+    }
+    function popTarget() {
+      Dep.target = null;
+    }
+
     function observer(data) {
       if (_typeof(data) != 'object' || data == null) {
         return data;
@@ -269,10 +315,18 @@
     }();
 
     function defineReactive(data, key, value) {
-      observer(value);
+      observer(value); // 给每个属性添加一个dep
+
+      var dep = new Dep();
       Object.defineProperty(data, key, {
         get: function get() {
-          // console.log('获取pbj');
+          if (Dep.target) {
+            //注意此处是大写,target是静态私有变量不是实例的属性
+            dep.depend();
+          }
+
+          console.log(dep, 'dep111'); // console.log('获取pbj');
+
           return value;
         },
         set: function set(newValue) {
@@ -282,7 +336,9 @@
           }
 
           observer(newValue);
-          value = newValue;
+          value = newValue; // 更新依赖
+
+          dep.notify();
         }
       });
     }
@@ -674,13 +730,80 @@
     //  => 通过render函数变成vnode => vnode变成真实dom
     //  insert页面
 
+    var id = 0;
+
+    var watcher = /*#__PURE__*/function () {
+      function watcher(vm, updateComponent, cb, options) {
+        _classCallCheck(this, watcher);
+
+        this.vm = vm;
+        this.exprOrfn = updateComponent;
+        this.cb = cb;
+        this.options = options;
+        this.id = id++;
+        this.deps = []; //watcher存放dep 
+
+        this.depsId = new Set(); // 存放不重复的dep id
+        // 判断
+
+        if (typeof updateComponent === 'function') {
+          this.getters = updateComponent; //更新视图
+        } // 初次渲染
+
+
+        this.get();
+      }
+
+      _createClass(watcher, [{
+        key: "addDep",
+        value: function addDep(dep) {
+          // 去重
+          var id = dep.id; //depsId set解构使用has方法判断是否存在
+
+          if (!this.depsId.has(id)) {
+            this.deps.push(dep);
+            this.depsId.add(id); //set解构 用add方法添加
+
+            dep.addSub(this);
+          }
+        } // 初次渲染
+
+      }, {
+        key: "get",
+        value: function get() {
+          pushTarget(this); // 给dep添加watcher
+
+          this.getters(); //渲染页面 vm._update(vm._render) _s(msg) 拿到vm.msg
+
+          popTarget(); //取消watcher
+        }
+      }, {
+        key: "update",
+        value: function update() {
+          this.getters();
+        }
+      }]);
+
+      return watcher;
+    }();
+    // vue  dep watcher data:{name,msg}
+    // dep  : dep和data中的属性一一对应
+    // watcher : 在视图上用几个,就有几个watcher
+    // 一. 基本类型的关系
+    // dep 与 watcher的关系:  一对多 dep.name = [w1,w2,w3...]
+    //二. 实现对象的收集依赖
+    // dep 和watcher的关系 多对多 computed
+
     function mountComponent(vm, el) {
       callHook(vm, 'beforeMounted'); // 更新组件的方法
       // 1.vm._render将render函数变成虚拟dom
       // 2. vm._update 将vnode变成真实dom 
 
-      vm._update(vm._render());
+      var updateComponent = function updateComponent() {
+        vm._update(vm._render());
+      };
 
+      new watcher(vm, updateComponent, function () {}, true);
       callHook(vm, 'mounted');
     }
     function lifecycleMixin(Vue) {

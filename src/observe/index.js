@@ -1,5 +1,5 @@
 import { arrMethods } from "./arr"
-
+import Dep from './dep'
 export function observer(data){
 
     if(typeof data != 'object' || data == null){
@@ -46,8 +46,15 @@ class Observer{
 }
 function defineReactive(data,key,value){
     observer(value)
+    // 给每个属性添加一个dep
+    let dep = new Dep()
     Object.defineProperty(data,key,{
         get(){
+            if(Dep.target){ 
+            //注意此处是大写,target是静态私有变量不是实例的属性
+                dep.depend()
+            }
+            console.log(dep,'dep111');
             // console.log('获取pbj');
             return value
         },
@@ -58,6 +65,8 @@ function defineReactive(data,key,value){
             }
             observer(newValue)
             value = newValue
+            // 更新依赖
+            dep.notify()
         }
     })
 }

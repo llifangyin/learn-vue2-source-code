@@ -52,3 +52,4 @@ init初始化后，开始模板编译步骤详见生命周期
 6. vnode 变成真实dom(patch里的createEl)
 7. 生命周期
 + 定义mixin mergeOptions方法 合并created computed watch...得到{created:[a,b,c],data:[a,b]...} 格式的数据
++ callHook 调用 callHook(vm,'beforecreated')
