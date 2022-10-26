@@ -210,6 +210,7 @@
         }
 
         console.log(inserted, 111);
+        ob.dep.notify();
         return result;
       };
     });
@@ -278,6 +279,7 @@
           value: this //this当前实例 this.observeArray
 
         });
+        this.dep = new Dep(); //给所有的对象类型添加一个dep
 
         if (Array.isArray(data)) {
           // 对数组的方法进行劫持行操作
@@ -315,17 +317,23 @@
     }();
 
     function defineReactive(data, key, value) {
-      observer(value); // 给每个属性添加一个dep
+      var childDep = observer(value); // 给每个属性添加一个dep
 
       var dep = new Dep();
       Object.defineProperty(data, key, {
         get: function get() {
+          // console.log(childDep,'childDep');
           if (Dep.target) {
             //注意此处是大写,target是静态私有变量不是实例的属性
             dep.depend();
-          }
 
-          console.log(dep, 'dep111'); // console.log('获取pbj');
+            if (childDep.dep) {
+              // 如果有 进行数组收集
+              childDep.dep.depend();
+            }
+          } // console.log(dep,'dep111');
+          // console.log('获取pbj');
+
 
           return value;
         },
@@ -446,7 +454,7 @@
 
     function charts(text) {
       // console.log(text,'文本');
-      text = text.replace(/a/g, ''); //去空格
+      text = text.replace(/\s*/g, ''); //去空格
 
       if (text) {
         createdParent.children.push({
@@ -736,6 +744,7 @@
       function watcher(vm, updateComponent, cb, options) {
         _classCallCheck(this, watcher);
 
+        // callback 标识
         this.vm = vm;
         this.exprOrfn = updateComponent;
         this.cb = cb;
@@ -786,22 +795,31 @@
 
       return watcher;
     }();
+    // 收集依赖
     // vue  dep watcher data:{name,msg}
     // dep  : dep和data中的属性一一对应
     // watcher : 在视图上用几个,就有几个watcher
     // 一. 基本类型的关系
     // dep 与 watcher的关系:  一对多 dep.name = [w1,w2,w3...]
     //二. 实现对象的收集依赖
-    // dep 和watcher的关系 多对多 computed
+    // dep 和watcher的关系 多对多 computed 
+    // 三 数组更新
+    // 1. 给所有的对象增加一个dep []
+    // 2. 获取数组的值,会调用get方法,希望让当前的数组记住这个渲染的watcher
+    //   (1) 需要获取当前dep
+    //   (2) 当前面对数组取值的时候,就让数组的dep记住这个watcher
+    // 3. 我们更新数组的时候,调用push,等等方法时,找到我们这个watcher
 
     function mountComponent(vm, el) {
       callHook(vm, 'beforeMounted'); // 更新组件的方法
       // 1.vm._render将render函数变成虚拟dom
       // 2. vm._update 将vnode变成真实dom 
+      // 实现自动更新
 
       var updateComponent = function updateComponent() {
         vm._update(vm._render());
-      };
+      }; // constructor(vm,updateComponent,cb,options){
+
 
       new watcher(vm, updateComponent, function () {}, true);
       callHook(vm, 'mounted');
@@ -862,7 +880,7 @@
             // (1) 将render函数变成vnode
 
             options.render = render; // (2) 将vnode变成真实DOM放到页面中
-          } // 挂在组件
+          } // 挂载组件
           // 1.vm._render将render函数变成虚拟dom
           // 2. vm._update 将vnode变成真实dom
 

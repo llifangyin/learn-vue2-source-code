@@ -42,7 +42,7 @@ export function initMixin(Vue){
                 options.render = render
                 // (2) 将vnode变成真实DOM放到页面中
             }
-            // 挂在组件
+            // 挂载组件
             // 1.vm._render将render函数变成虚拟dom
             // 2. vm._update 将vnode变成真实dom
             mountComponent(vm,el)

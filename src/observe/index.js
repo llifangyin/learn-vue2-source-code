@@ -1,11 +1,9 @@
 import { arrMethods } from "./arr"
 import Dep from './dep'
 export function observer(data){
-
     if(typeof data != 'object' || data == null){
         return data
     }
-
     return new Observer(data)
 
 }
@@ -17,8 +15,10 @@ class Observer{
             enumerable:false,
             value:this,//this当前实例 this.observeArray
         })
+        this.dep = new Dep() //给所有的对象类型添加一个dep
 
         if(Array.isArray(data)){
+           
             // 对数组的方法进行劫持行操作
             data.__proto__ = arrMethods
             // 如果是对象数组，对数组对象劫持
@@ -45,16 +45,21 @@ class Observer{
 
 }
 function defineReactive(data,key,value){
-    observer(value)
+    let childDep = observer(value)
     // 给每个属性添加一个dep
     let dep = new Dep()
     Object.defineProperty(data,key,{
         get(){
+            // console.log(childDep,'childDep');
             if(Dep.target){ 
             //注意此处是大写,target是静态私有变量不是实例的属性
                 dep.depend()
+                if(childDep.dep){
+                    // 如果有 进行数组收集
+                    childDep.dep.depend() 
+                }
             }
-            console.log(dep,'dep111');
+            // console.log(dep,'dep111');
             // console.log('获取pbj');
             return value
         },

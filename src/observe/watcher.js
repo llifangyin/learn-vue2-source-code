@@ -4,6 +4,7 @@ import { popTarget, pushTarget } from "./dep"
 let id = 0
 class watcher{
     constructor(vm,updateComponent,cb,options){
+        // callback 标识
         this.vm = vm
         this.exprOrfn = updateComponent
         this.cb =cb
@@ -41,6 +42,7 @@ class watcher{
 }
 export default watcher
 
+// vue更新策略:以组件为单位,给每一组件添加一个watcher,属性变化后,调用这个watcher
 
 // 收集依赖
 // vue  dep watcher data:{name,msg}
@@ -52,3 +54,9 @@ export default watcher
 
 //二. 实现对象的收集依赖
 // dep 和watcher的关系 多对多 computed 
+// 三 数组更新
+// 1. 给所有的对象增加一个dep []
+// 2. 获取数组的值,会调用get方法,希望让当前的数组记住这个渲染的watcher
+//   (1) 需要获取当前dep
+//   (2) 当前面对数组取值的时候,就让数组的dep记住这个watcher
+// 3. 我们更新数组的时候,调用push,等等方法时,找到我们这个watcher

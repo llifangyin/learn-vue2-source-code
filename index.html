@@ -8,20 +8,23 @@
 </head>
 <body>
     <div id="app"  style="color:cyan;margin:10px;" >
-        hello {{ msg }} 
+        hello  
         <h2>张三</h2>
+        {{ name }}
+        <h2>{{arr}}</h2>
+        {{msg.name}}
     </div>
     <!-- <h1>this is a h1</h1>  -->
     <script src="./dist/vue.js"></script>
     <script>
         Vue.Mixin({
             created:function a(){
-                console.log('mixin created a');
+                // console.log('mixin created a');
             }
         })
         Vue.Mixin({
             created:function b(){
-                console.log('mixin created b');
+                // console.log('mixin created b');
             }
         })
         
@@ -30,7 +33,10 @@
             data(){
                 
                 return {
-                    msg : 'this is a msg',
+                    // msg : 'this is a msg',
+                    msg:{name:'xxx'},
+                    name:'this is a name',
+                    arr:[1,2,3],
                     a:{
                         b:20
                     },
@@ -38,7 +44,7 @@
                 }
             },
             created(){
-                console.log('created 555');
+                // console.log('created 555');
             },
             props:{
 
@@ -66,10 +72,16 @@
 
         
         // vm.msg = vm._data.msg
+
         setTimeout(() => {
-            vm.msg = 'changed msg'
+            vm.name = 'changed msg'
+            // vm._update(vm._render())
         }, 1000);
-        vm.msg = 'proxy value'
+        // setTimeout(() => {
+        //     vm.arr.push(4)
+        // }, 1000);
+
+        // vm.msg = 'proxy value'
         //  console.log(vm.msg);
         //  vue 初次渲染的流程 ：
         // 先初始化数据 ==> 将模板进行编译 ==> 变成render函数 ==> 生成虚拟节点 ==> 变成真实dom ==> 放到页面

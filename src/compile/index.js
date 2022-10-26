@@ -9,7 +9,6 @@ export function compileToFunction(el){
     
     let code = generate(ast) // _c节点 _v文本 _s变量
     // console.log(code);
-
     let render = new Function(`with(this){return ${code}}`)
     // console.log(render);
 

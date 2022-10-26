@@ -3,13 +3,16 @@ import watcher from './observe/watcher';
 export function mountComponent(vm,el){
 
     callHook(vm,'beforeMounted')
+
     // 更新组件的方法
     // 1.vm._render将render函数变成虚拟dom
     // 2. vm._update 将vnode变成真实dom 
     
+    // 实现自动更新
     let updateComponent = ()=>{
         vm._update(vm._render())
     }
+    // constructor(vm,updateComponent,cb,options){
     new watcher(vm,updateComponent,()=>{},true)
 
     callHook(vm,'mounted')
