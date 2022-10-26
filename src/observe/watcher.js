@@ -36,8 +36,39 @@ class watcher{
         this.getters() //渲染页面 vm._update(vm._render) _s(msg) 拿到vm.msg
         popTarget() //取消watcher
     }
+    // 更新数据
     update(){
+        // 不要数据更新后每次调用
+        // 缓存
+        // this.get()
+        queueWatcher(this)
+    }
+    run(){
         this.getters()
+    }
+}
+let queue = []//将需要批量更新的watcher 存放队列中
+let has = {}
+let pending = false
+function queueWatcher(watcher){
+    let id = watcher.id // 没一个组件都是同一个watcher
+    // console.log(666); //3次
+    if(has[id] == null){ //去重
+        queue.push(watcher)
+        has[id] = true
+        //防抖: 触发多次 只执行一次
+        if(!pending){
+            //异步 等待同步代码执行完毕 执行
+            setTimeout(() => {
+                queue.forEach(item=>{
+                    watcher.run()
+                    queue =[]
+                    has = {}
+                    pending = true
+                })
+            }, 0);
+            pending = true
+        }
     }
 }
 export default watcher

@@ -10,6 +10,7 @@ export function mountComponent(vm,el){
     
     // 实现自动更新
     let updateComponent = ()=>{
+        console.log(vm._render());
         vm._update(vm._render())
     }
     // constructor(vm,updateComponent,cb,options){

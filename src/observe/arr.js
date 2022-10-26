@@ -7,7 +7,7 @@ let methods = ['push','pop',"unshift","shift","splice"]
 
 methods.forEach(item=>{
     arrMethods[item] = function(...args){
-        console.log('劫持数组');
+        // console.log('劫持数组');
        let result =  oldArrayProtoMethods[item].apply(this,args)//this当前实例对象，
         //observe中把类整体赋值给了__ob__可供在此调用数据劫持方法obseveArray
 
@@ -30,7 +30,7 @@ methods.forEach(item=>{
             //对添加的对象进行劫持
             ob.observeArray(inserted)
         }
-        console.log(inserted,111);
+        // console.log(inserted,111);
         ob.dep.notify()
        return result
     }

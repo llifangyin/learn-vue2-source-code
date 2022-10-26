@@ -176,12 +176,11 @@
     var methods = ['push', 'pop', "unshift", "shift", "splice"];
     methods.forEach(function (item) {
       arrMethods[item] = function () {
-        console.log('劫持数组');
-
         for (var _len = arguments.length, args = new Array(_len), _key = 0; _key < _len; _key++) {
           args[_key] = arguments[_key];
         }
 
+        // console.log('劫持数组');
         var result = oldArrayProtoMethods[item].apply(this, args); //this当前实例对象，
         //observe中把类整体赋值给了__ob__可供在此调用数据劫持方法obseveArray
         //args :push时为添加的数组参数
@@ -207,9 +206,9 @@
         if (inserted) {
           //对添加的对象进行劫持
           ob.observeArray(inserted);
-        }
+        } // console.log(inserted,111);
 
-        console.log(inserted, 111);
+
         ob.dep.notify();
         return result;
       };
@@ -785,16 +784,54 @@
           this.getters(); //渲染页面 vm._update(vm._render) _s(msg) 拿到vm.msg
 
           popTarget(); //取消watcher
-        }
+        } // 更新数据
+
       }, {
         key: "update",
         value: function update() {
+          // 不要数据更新后每次调用
+          // 缓存
+          // this.get()
+          queueWatcher(this);
+        }
+      }, {
+        key: "run",
+        value: function run() {
           this.getters();
         }
       }]);
 
       return watcher;
     }();
+
+    var queue = []; //将需要批量更新的watcher 存放队列中
+
+    var has = {};
+    var pending = false;
+
+    function queueWatcher(watcher) {
+      var id = watcher.id; // 没一个组件都是同一个watcher
+      // console.log(666); //3次
+
+      if (has[id] == null) {
+        //去重
+        queue.push(watcher);
+        has[id] = true; //防抖: 触发多次 只执行一次
+
+        if (!pending) {
+          //异步 等待同步代码执行完毕 执行
+          setTimeout(function () {
+            queue.forEach(function (item) {
+              watcher.run();
+              queue = [];
+              has = {};
+              pending = true;
+            });
+          }, 0);
+          pending = true;
+        }
+      }
+    }
     // 收集依赖
     // vue  dep watcher data:{name,msg}
     // dep  : dep和data中的属性一一对应
@@ -817,6 +854,8 @@
       // 实现自动更新
 
       var updateComponent = function updateComponent() {
+        console.log(vm._render());
+
         vm._update(vm._render());
       }; // constructor(vm,updateComponent,cb,options){
 
