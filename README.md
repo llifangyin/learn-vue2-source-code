@@ -52,8 +52,8 @@ init初始化后，开始模板编译步骤详见生命周期
 6. vnode 变成真实dom(patch里的createEl)
 7. 生命周期
 + 定义mixin mergeOptions方法 合并created computed watch...得到{created:[a,b,c],data:[a,b]...} 格式的数据
-+ callHook 调用 callHook(vm,'beforecreated')
-8. dep watcher 依赖收集
+##  callHook 调用 callHook(vm,'beforecreated')
+##  dep watcher 依赖收集
 > watcher实例的目的是实现更新,defineReactive中数据劫持getter收集依赖,setter更新依赖
 + dep和data中的变量一一对应
 + 在视图上用几个变量,就有几个watcher
@@ -62,3 +62,8 @@ dep 与 watcher的关系:  一对多 dep.name = [w1,w2,w3...]
     2. 实现对象的收集依赖 <br>
 dep 和watcher的关系 多对多 computed 
     3. 实现数组的收集依赖
+
+## queue 队列处理,类似防抖实现更新
++ 一个变量触发多次变更，最终执行一次更新函数 _update(_render)
+##  nextTick实现原理
++ 兼容性异步处理 Promise > MutationObserver > setImmediate
