@@ -38,29 +38,60 @@
                     name:'this is a name',
                     arr:[1,2,3],
                     a:{
-                        b:20
+                        b:{c:20}
                     },
-                    c:[1,2,3,{a:1}]
+                    d:'111',
+                    c:[1,2,3,{a:1}],
+                    e:111
                 }
             },
             created(){
                 // console.log('created 555');
             },
+            updated() {
+                // console.log('updated',666);
+            },
             props:{
 
             },
             watch:{
+                // name(newVal,oldVal){
+                //     console.log(newVal,'name');
+                // },
+                // msg(newVal,oldVal){
+                //     console.log(newVal,'msg');
+                // },
+                // arr:[
+                //     (newVal,oldVal)=>{
+                //         console.log(newVal,'arr1');
+                //     },
+                //     (newVal,oldVal)=>{
+                //         console.log(newVal,'arr2');
+                //     }
+                // ],
+                // 'a.b.c'(newVal,oldVal){
+                //     console.log('a.b.c',newVal);
+                // },
+                // d:{
+                //     handler(val){
+                //         console.log('d',val);
+                //     },
+                //     immediate:true
+                // },
+                // e:'fun1'
 
             },
             computed:{
 
             },
             methods:{
-                 
+                fun1(val){
+                    console.log(val);
+                }
             }
         })
         // .$mounted("#app") == el:#app
-        // console.log(vm._data.msg,111 );
+        // console.log(vm._data.msg,111 );console
         // console.log(vm._data.a.b,111 );
         // vm._data.msg =  'this is not a msg'
         // vm._data.a.b =  10
@@ -73,15 +104,18 @@
         
         // vm.msg = vm._data.msg
 
+        vm.a.b.c = 1
         setTimeout(() => {
             vm.name = 'changed msg'
+            vm.msg = {name:'yyy'}
             vm.arr.push(4)
-            vm.arr.push(5)
+            // vm.arr.push(5)
+            vm.d = '222'
             // 数据更新多次,vm._update(vm._render())只需要执行一次
             // 批量处理 => Vue异步处理,数据更新不会马上执行,最后一次执行完才更更新
 
             vm.$nextTick(()=>{
-                console.log('$nexttick==>',vm.$el.innerHTML);
+                // console.log('$nexttick==>',vm.$el.innerHTML);
             })
         }, 1000);
         // setTimeout(() => {

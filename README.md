@@ -52,7 +52,16 @@ init初始化后，开始模板编译步骤详见生命周期
 6. vnode 变成真实dom(patch里的createEl)
 7. 生命周期
 + 定义mixin mergeOptions方法 合并created computed watch...得到{created:[a,b,c],data:[a,b]...} 格式的数据
-##  callHook 调用 callHook(vm,'beforecreated')
+##  callHook 调用声明周期函数
++ callHook(vm,'beforecreated')
++ initState 初始化数据observer对属性进行defineReactive数据劫持 => 检测变化 => 进行收集dep => dep.notify =>wacher.update更新dom
++ callHook(vm,'created')
++ vm.$mounted(vm.$options.el)//渲染模板 ast语法树=> render函数 => mountComponent
++ callHook(vm,'beforeMounted')
++ new watcher(vm,updateComponent,()=>{**callHook(vm,'updated')**},true)
++ callHook(vm,'mounted')
+
+
 ##  dep watcher 依赖收集 (todo watcher的含义是更新一个变量还是整体dom更新？)
 > watcher实例的目的是实现更新,defineReactive中数据劫持getter收集依赖,setter更新依赖
 + dep和data中的变量一一对应
@@ -68,3 +77,10 @@ dep 和watcher的关系 多对多 computed
 ##  nextTick实现原理
 + 兼容性异步处理 Promise > MutationObserver?(有待细节实现 todo) > setImmediate 
 + 防抖队列处理 (有待demo细究 todo)
+
+## watch实现
+1. initWatch方法获取option的watch配置项:兼容四种调用方式 (object array fn string)
+2. createWatcher方法,获取handler回调函数,创建$watch
+3. 定义Vue.prototype.$watch(vm,exprOrfn,handler,options)调用new Watcher(vm,exprOrfn,handler,{...options,user:true})
+4. watcher类中updateComponent参数!=function时,获取watch的初始值处理
+5. 检测数据变动时,判断如果user为true执行watch的callback(handler)回调 ;this.cb.call(this.vm,value,oldValue)

@@ -8,17 +8,30 @@ class watcher{
         // callback 标识
         this.vm = vm
         this.exprOrfn = updateComponent
-        this.cb =cb
+        this.cb = cb
         this.options = options
         this.id = id++
+        this.user = !!options.user //!! 保证为布尔值
         this.deps = [] //watcher存放dep 
         this.depsId = new Set() // 存放不重复的dep id
         // 判断
         if(typeof updateComponent === 'function'){
             this.getters = updateComponent //更新视图
+        }else{
+            //watch监听的属性名 key
+            // 字符串变成函数
+            this.getters =  function(){
+                // a.b.c 深层监听
+                let path = this.exprOrfn.split('.')
+                let obj = vm
+                for(let i =0 ;i<path.length;i++){
+                    obj = obj[path[i]]
+                }
+                return obj //vm.a.b.c
+            }
         }
-        // 初次渲染
-        this.get()
+        // 初次渲染  保存初始值
+        this.value = this.get() //保存watcher初始值
     }   
     addDep(dep){
         // 去重
@@ -34,8 +47,9 @@ class watcher{
     // 初次渲染
     get(){
         pushTarget(this) // 给dep添加watcher
-        this.getters() //渲染页面 vm._update(vm._render) _s(msg) 拿到vm.msg
+        const value = this.getters() //渲染页面 vm._update(vm._render) _s(msg) 拿到vm.msg
         popTarget() //取消watcher
+        return value //初始值
     }
     // 更新数据
     update(){
@@ -45,7 +59,14 @@ class watcher{
         queueWatcher(this)
     }
     run(){
-        this.getters()
+        // 更新取值 old new
+        let value = this.get()
+        let oldValue = this.value
+        this.value = oldValue
+        if(this.user){
+            // 执行handler 用户的watcher的cb
+            this.cb.call(this.vm,value,oldValue)
+        }
     }
 }
 let queue = []//将需要批量更新的watcher 存放队列中
@@ -54,11 +75,12 @@ let pending = false
 // 队列处理
 function flushWatcher(){
      queue.forEach(watcher=>{
-        watcher.run()
-        queue =[]
-        has = {}
-        pending = true
+        watcher.run() //执行更新函数
+        // watcher.cb() // updated 声明周期函数
     })
+    queue =[]
+    has = {}
+    pending = true
 }
 function queueWatcher(watcher){
     let id = watcher.id // 没一个组件都是同一个watcher
@@ -97,3 +119,4 @@ export default watcher
 //   (1) 需要获取当前dep
 //   (2) 当前面对数组取值的时候,就让数组的dep记住这个watcher
 // 3. 我们更新数组的时候,调用push,等等方法时,找到我们这个watcher
+

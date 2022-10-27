@@ -15,9 +15,9 @@ starts.data = function(parentVal,childVal){
     return childVal
 
 }//合并data
-starts.computed = function(){}
-starts.watch = function(){}
-starts.methods = function(){}
+// starts.computed = function(){}
+// starts.watch = function(){}
+// starts.methods = function(){}
 // 遍历声明周期HOOKS
 HOOKS.forEach(hooks=>{
     starts[hooks] = mergeHooks

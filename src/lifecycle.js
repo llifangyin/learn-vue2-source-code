@@ -13,8 +13,11 @@ export function mountComponent(vm,el){
         // console.log(vm._render());
         vm._update(vm._render())
     }
+    // 更新数据
     // constructor(vm,updateComponent,cb,options){
-    new watcher(vm,updateComponent,()=>{},true)
+    new watcher(vm,updateComponent,()=>{
+        callHook(vm,'updated') //订阅
+    },true)
 
     callHook(vm,'mounted')
 }
