@@ -1,4 +1,5 @@
 import { observer } from "./observe/index"
+import { nextTick } from "./utils/nextTick"
 
 
 export function initState(vm){
@@ -46,3 +47,13 @@ function initProps(){}
 function initWatch(){}
 function initMethods(){}
 function initComputed(){}
+
+export function stateMixin(vm){
+    // 队列  vue自己的nexttick
+    //  1 vue 自己的nexttick 2 用户调用的
+    vm.prototype.$nextTick = function(cb){
+        // 数据更新之后获取到最新的dom
+        // console.log(cb);
+        nextTick(cb)
+    }
+}

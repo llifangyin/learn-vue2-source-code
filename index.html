@@ -79,10 +79,13 @@
             vm.arr.push(5)
             // 数据更新多次,vm._update(vm._render())只需要执行一次
             // 批量处理 => Vue异步处理,数据更新不会马上执行,最后一次执行完才更更新
+
+            vm.$nextTick(()=>{
+                console.log('$nexttick==>',vm.$el.innerHTML);
+            })
         }, 1000);
         // setTimeout(() => {
         // }, 1000);
-
         // vm.msg = 'proxy value'
         //  console.log(vm.msg);
         //  vue 初次渲染的流程 ：

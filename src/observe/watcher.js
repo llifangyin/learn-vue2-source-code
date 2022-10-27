@@ -1,3 +1,4 @@
+import { nextTick } from "../utils/nextTick"
 import { popTarget, pushTarget } from "./dep"
 
 // 1 同过这个类 watcher实现更新
@@ -50,6 +51,15 @@ class watcher{
 let queue = []//将需要批量更新的watcher 存放队列中
 let has = {}
 let pending = false
+// 队列处理
+function flushWatcher(){
+     queue.forEach(watcher=>{
+        watcher.run()
+        queue =[]
+        has = {}
+        pending = true
+    })
+}
 function queueWatcher(watcher){
     let id = watcher.id // 没一个组件都是同一个watcher
     // console.log(666); //3次
@@ -59,20 +69,16 @@ function queueWatcher(watcher){
         //防抖: 触发多次 只执行一次
         if(!pending){
             //异步 等待同步代码执行完毕 执行
-            setTimeout(() => {
-                queue.forEach(item=>{
-                    watcher.run()
-                    queue =[]
-                    has = {}
-                    pending = true
-                })
-            }, 0);
+            // setTimeout(() => {
+           
+            // }, 0);
+            // nextTick 相当于定时器，
+            nextTick(flushWatcher)
             pending = true
         }
     }
 }
 export default watcher
-
 // vue更新策略:以组件为单位,给每一组件添加一个watcher,属性变化后,调用这个watcher
 
 // 收集依赖

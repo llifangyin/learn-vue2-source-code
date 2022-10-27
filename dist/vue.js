@@ -350,6 +350,61 @@
       });
     }
 
+    var callback = [];
+    var pending$1 = false;
+
+    function flush() {
+      // console.log(222);
+      callback.forEach(function (cb) {
+        return cb();
+      });
+      pending$1 = false;
+    }
+
+    var timerFunc; // 处理兼容性问题
+
+    if (Promise) {
+      timerFunc = function timerFunc() {
+        Promise.resolve().then(function () {
+          // console.log(1.5);
+          flush();
+        });
+      };
+    } else if (MutationObserver) {
+      //h5处理异步
+      // 监听dom变化，监控完毕再异步更新
+      var observe = new MutationObserver(flush); //创建文本
+
+      var textNode = document.createTextNode(1); //观测文本内容
+
+      observe.observe(textNode, {
+        characterData: true
+      });
+
+      timerFunc = function timerFunc() {
+        textNode.textContent = 2;
+      };
+    } else if (setImmediate) {
+      // ie支持
+      timerFunc = function timerFunc() {
+        setImmediate(flush);
+      };
+    }
+
+    function nextTick(cb) {
+      // console.log(cb,111);
+      // 队列 //  1 vue 自己的nexttick 2 用户调用的
+      callback.push(cb); // [cb1,cb2]
+
+      if (!pending$1) {
+        // vue3 使用promise.then
+        // vue2 处理兼容问题
+        timerFunc(); //异步执行
+
+        pending$1 = true;
+      }
+    }
+
     function initState(vm) {
       var ops = vm.$options;
 
@@ -387,6 +442,16 @@
           vm[source][key] = val;
         }
       });
+    }
+
+    function stateMixin(vm) {
+      // 队列  vue自己的nexttick
+      //  1 vue 自己的nexttick 2 用户调用的
+      vm.prototype.$nextTick = function (cb) {
+        // 数据更新之后获取到最新的dom
+        // console.log(cb);
+        nextTick(cb);
+      };
     }
 
     // ast语法树 {} 操作节点 css js
@@ -807,7 +872,16 @@
     var queue = []; //将需要批量更新的watcher 存放队列中
 
     var has = {};
-    var pending = false;
+    var pending = false; // 队列处理
+
+    function flushWatcher() {
+      queue.forEach(function (watcher) {
+        watcher.run();
+        queue = [];
+        has = {};
+        pending = true;
+      });
+    }
 
     function queueWatcher(watcher) {
       var id = watcher.id; // 没一个组件都是同一个watcher
@@ -820,14 +894,10 @@
 
         if (!pending) {
           //异步 等待同步代码执行完毕 执行
-          setTimeout(function () {
-            queue.forEach(function (item) {
-              watcher.run();
-              queue = [];
-              has = {};
-              pending = true;
-            });
-          }, 0);
+          // setTimeout(() => {
+          // }, 0);
+          // nextTick 相当于定时器，
+          nextTick(flushWatcher);
           pending = true;
         }
       }
@@ -854,8 +924,7 @@
       // 实现自动更新
 
       var updateComponent = function updateComponent() {
-        console.log(vm._render());
-
+        // console.log(vm._render());
         vm._update(vm._render());
       }; // constructor(vm,updateComponent,cb,options){
 
@@ -989,6 +1058,8 @@
     lifecycleMixin(Vue); //添加声明周期
 
     renderMixin(Vue); //render函数 创建虚拟dom
+
+    stateMixin(Vue); // 给实例添加$nextTick 方法
     // 全局方法 Vuemixin vue.component extend...
 
     initGlobApi(Vue);
