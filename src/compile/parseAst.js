@@ -22,58 +22,59 @@ const endTag = new RegExp(`^<\\/${qnameCapture}[^>]*>`)//匹配标签结尾的</
 const attribute = /^\s*([^\s"'<>\/=]+)(?:\s*(=)\s*(?:"([^"]*)"+|'([^']*)'+|([^\s"'=<>`]+)))?/ 
 const startTagClose = /^\s*(\/?)>/  //匹配标签结束时的>
 
-// 创建ast对象
-function createAstElement(tag,attrs){
-    return {
-        tag,//元素
-        attrs,//属性
-        children:[],//子集
-        type:1,//dom 1
-        parent:null
-    }
-}
-
-let root;//根元素
-let createdParent;//当前元素父节点
-let stack=[]; //栈的数据解构 [div,h]
-
-
-// 开始的标签 添加至root 语法树解构的对象中
-function start(tag,attrs){
-    // console.log(tag,attrs,'开始标签');
-    let element = createAstElement(tag,attrs)
-    if(!root){
-        root = element
-    }
-    createdParent = element
-    stack.push(element)
-}
-// 文本
-function charts(text){
-    // console.log(text,'文本');
-    text = text.replace(/\s*/g,'')//去空格
-    if(text){
-        createdParent.children.push({
-            type:3,
-            text
-        })
-    }
-}
-function end(tag){
-    // console.log(tag,'结束标签');
-    let element = stack.pop()
-    createdParent = stack[stack.length-1]
-    if(createdParent){ //元素的闭合
-        element.parent = createdParent.tag
-        createdParent.children.push(element)
-    }
-}
-
 
 
 // 解析html
 // 遍历
 export function parseHTML(html){
+    
+    // 创建ast对象
+    function createAstElement(tag,attrs){
+        return {
+            tag,//元素
+            attrs,//属性
+            children:[],//子集
+            type:1,//dom 1
+            parent:null
+        }
+    }
+
+    // 开始的标签 添加至root 语法树解构的对象中
+    function start(tag,attrs){
+        // console.log(tag,attrs,'开始标签');
+        let element = createAstElement(tag,attrs)
+        if(!root){
+            root = element
+        }
+        createdParent = element
+        stack.push(element)
+    }
+    // 文本
+    function charts(text){
+        // console.log(text,'文本');
+        text = text.replace(/\s*/g,'')//去空格
+        if(text){
+            createdParent.children.push({
+                type:3,
+                text
+            })
+        }
+    }
+    function end(tag){
+        // console.log(tag,'结束标签');
+        let element = stack.pop()
+        createdParent = stack[stack.length-1]
+        if(createdParent){ //元素的闭合
+            element.parent = createdParent.tag
+            createdParent.children.push(element)
+        }
+    }
+
+    let root;//根元素
+    let createdParent;//当前元素父节点
+    let stack=[]; //栈的数据解构 [div,h]
+
+
     // 开始标签 文本 结束标签
     // 一层层的剥离html的内容
     while(html){

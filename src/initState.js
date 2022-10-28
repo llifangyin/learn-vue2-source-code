@@ -10,6 +10,7 @@ export function initState(vm){
     if(ops.data){
         initData(vm)
     }
+    // 先初始化data,再初始化watch
     if(ops.watch){
         initWatch(vm)
     }
