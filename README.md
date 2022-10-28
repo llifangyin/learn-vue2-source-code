@@ -84,3 +84,8 @@ dep 和watcher的关系 多对多 computed
 3. 定义Vue.prototype.$watch(vm,exprOrfn,handler,options)调用new Watcher(vm,exprOrfn,handler,{...options,user:true})
 4. watcher类中updateComponent参数!=function时,获取watch的初始值处理
 5. 检测数据变动时,判断如果user为true执行watch的callback(handler)回调 ;this.cb.call(this.vm,value,oldValue)
+
+## diff算法
+> 新旧虚拟dom进行逐层判断，比较更新后再更新真实DOM，
+1.  patch函数中：根据初步判断节点是否相同，根元素的标签、属性初步判断
+2. 子元素children
