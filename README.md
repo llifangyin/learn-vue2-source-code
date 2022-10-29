@@ -86,6 +86,9 @@ dep 和watcher的关系 多对多 computed
 5. 检测数据变动时,判断如果user为true执行watch的callback(handler)回调 ;this.cb.call(this.vm,value,oldValue)
 
 ## diff算法
-> 新旧虚拟dom进行逐层判断，比较更新后再更新真实DOM，
-1.  patch函数中：根据初步判断节点是否相同，根元素的标签、属性初步判断
-2. 子元素children
+> 新旧虚拟dom进行逐层判断，比较更新后再更新真实DOM，实现最小量更新的方法
+1.  patch函数中：根据初步判断节点是否相同，根元素的标签、属性初步判断；如果内容不同则采用指针的比对方法进行比对更新
+2. 从头往后比对
+3. 从后往前比对
+4. 交叉比对
+5. 暴力比对(创建key:index映射表，while遍历判断oldVnode和newVnode是否存在，插入节点)

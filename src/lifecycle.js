@@ -24,7 +24,14 @@ export function mountComponent(vm,el){
 export function lifecycleMixin(Vue){
     Vue.prototype._update = function(vnode){
         let vm = this
-        vm.$el = patch(vm.$el,vnode)//旧dom，虚拟dom
+        // 需要区分首次渲染，还是更新
+        let prevVnode = vm._vnode //首次渲染，_vnode为null
+        if(!prevVnode){
+            vm.$el = patch(vm.$el,vnode)//旧dom，虚拟dom
+            vm._vnode = vnode 
+        }else{
+            patch(vm.$el,vnode)
+        }
     }
 } 
 
