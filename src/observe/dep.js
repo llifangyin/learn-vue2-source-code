@@ -25,10 +25,17 @@ class Dep{
 }
 // 添加watcher
 Dep.target = null
+// 处理多个watcher 渲染的 和 coputed的
+let stack = [] 
 export function pushTarget(watcher){
     Dep.target = watcher
+    // 入栈
+    stack.push(watcher) 
 }
 export function popTarget(){
-    Dep.target = null
+    // Dep.target = null
+    // 解析一个watcher删除一个watcher
+    stack.pop()
+    Dep.target = stack[stack.length-1] //获取前面的一个watcher
 }
 export default Dep

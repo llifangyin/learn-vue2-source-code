@@ -12,6 +12,8 @@ class watcher{
         this.options = options
         this.id = id++
         this.user = !!options.user //!! 保证为布尔值
+        this.lazy = options.lazy // 如果为true,是computed属性
+        this.dirty = this.lazy // 取值时，表示用户是否执行
         this.deps = [] //watcher存放dep 
         this.depsId = new Set() // 存放不重复的dep id
         // 判断
@@ -30,8 +32,8 @@ class watcher{
                 return obj //vm.a.b.c
             }
         }
-        // 初次渲染  保存初始值
-        this.value = this.get() //保存watcher初始值
+        // 初次渲染  保存初始值 (computed模式初始不加载)
+        this.value = this.lazy ? void 0: this.get() //保存watcher初始值
     }   
     addDep(dep){
         // 去重
@@ -47,7 +49,7 @@ class watcher{
     // 初次渲染
     get(){
         pushTarget(this) // 给dep添加watcher
-        const value = this.getters() //渲染页面 vm._update(vm._render) _s(msg) 拿到vm.msg
+        const value = this.getters.call(this.vm) //渲染页面 vm._update(vm._render) _s(msg) 拿到vm.msg
         popTarget() //取消watcher
         return value //初始值
     }
@@ -56,7 +58,13 @@ class watcher{
         // 不要数据更新后每次调用
         // 缓存
         // this.get()
-        queueWatcher(this)
+        
+        //lazy为ture 为computed
+        if(this.lazy){
+            this.dirty = true 
+        }else{
+            queueWatcher(this)
+        }
     }
     run(){
         // 更新取值 old new
@@ -68,6 +76,19 @@ class watcher{
             this.cb.call(this.vm,value,oldValue)
         }
     }
+    evaluate(){
+        this.value = this.get()
+        this.dirty = false 
+    }
+    // 相互收集
+    depend(){
+        // 收集渲染watcher,存放到dep中，dep再会存放watcher
+        // 最终可以通过watcher找到所有的dep,让所有的dep都记住渲染的watcher
+        let i = this.deps.length
+        while(i--){
+            this.deps[i].depend()
+        }
+    }
 }
 let queue = []//将需要批量更新的watcher 存放队列中
 let has = {}
@@ -75,8 +96,8 @@ let pending = false
 // 队列处理
 function flushWatcher(){
      queue.forEach(watcher=>{
-        watcher.run() //执行更新函数
-        // watcher.cb() // updated 声明周期函数
+        watcher.run() //防抖执行回调更新函数
+        // watcher.cb() // updated 声明周期函数 简易执行回调
     })
     queue =[]
     has = {}

@@ -7,7 +7,13 @@
     <title>vue2 sourcecode</title>
 </head>
 <body>
-    <div id="app"  style="color:cyan;margin:10px;" >
+    <div id="app"  style="color:#333;margin:10px;" >
+        <h2>
+            {{fullName}}
+        </h2>
+        <h2>
+            {{fullName2}}
+        </h2>
         hello  
         <h2>张三</h2>
         {{ name }}
@@ -36,6 +42,8 @@
                     // msg : 'this is a msg',
                     msg:{name:'xxx'},
                     name:'this is a name',
+                    firstName:'Cobe',
+                    lastName:'Bryant',
                     arr:[1,2,3],
                     a:{
                         b:{c:20}
@@ -81,6 +89,27 @@
                 // e:'fun1'
             },
             computed:{
+                // 使用方式
+                // 1.属性：函数
+                fullName:function(){
+                    return this.firstName + this.lastName
+                },
+                // 2.属性：对象
+                fullName2:{
+                    get(){
+                        return this.name + this.d
+                    },
+                    set(val){
+                        this.name = val
+                        this.d = 'custom computed'
+                    }
+                }
+
+
+                // 获取实例的computed属性，通过object.defineProperty
+                // 第一次获取 get
+                // 第二次获取 缓存机制 ,通过变量dirty watcher
+                // 实现方式:通过高阶函数(参数是一个函数或返回值是一个函数)
 
             },
             methods:{
@@ -101,14 +130,17 @@
         // vm._data.c.splice(1,1,{e:8})
 
         // vm.msg = vm._data.msg
-
-        vm.a.b.c = 1
+        // console.log(vm.fullName);
+        // vm.a.b.c = 1
         setTimeout(() => {
-            vm.name = 'changed msg'
-            vm.msg = {name:'yyy'}
-            vm.arr.push(4)
+            vm.firstName = 'lee'
+            // vm.name = 'changed msg'
+            // vm.fullName2 = '111'
+            // console.log(vm.fullName);
+            // vm.msg = {name:'yyy'}
+            // vm.arr.push(4)
             // vm.arr.push(5)
-            vm.d = '222'
+            // vm.d = '222'
             // 数据更新多次,vm._update(vm._render())只需要执行一次
             // 批量处理 => Vue异步处理,数据更新不会马上执行,最后一次执行完才更更新
 

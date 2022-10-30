@@ -151,6 +151,36 @@ function updateChild(oldChildren,newChildren,parent){
         }
     }
 
+    /* 测试diff算法 => 放置src/index.js里测似 */
+    //初始化创建vnode 
+    // let vm1 = new Vue({data:{name:'zhangsan vnode1'}}) //
+    // // let render1 = compileToFunction(`<div id="a" cc='cc' style="color:blue;font-size:18px">{{name}}</div>`)
+    // let render1 = compileToFunction(`<ul>
+    // <li key='a'>a</li>
+    // <li key='b'>b</li>
+    // <li key='c'>c</li>
+    // <li key='f'>f1</li>
+    // </ul>`)
+    // let vnode1 = render1.call(vm1)
+    // document.body.appendChild(createEl(vnode1))
+
+    // // 数据更新 计算diff最小化更新 => patch方法
+    // let vm2 = new Vue({data:{name:'lisi vnode2'}}) //
+    // // let render2 = compileToFunction(`<div id="b" name="test" style="color:gray;font-size:22px">{{name}}</div>`)
+    // let render2 = compileToFunction(`<ul>
+    // <li key='f'>f</li>
+    // <li key='g'>g</li>
+    // <li key='e'>e</li>
+    // <li key='h'>h</li>
+    // <li key='a'>a2</li>
+    // </ul>`)
+    // let vnode2 = render2.call(vm2)
+    // // document.body.appendChild(createEl(vnode2))
+    // // 通过patch比对
+    // setTimeout(() => {
+    //      patch(vnode1,vnode2)
+    // }, 2000);
+
 }
 // 添加属性
 function updateProps(vnode,oldProps={}){//第一次属性

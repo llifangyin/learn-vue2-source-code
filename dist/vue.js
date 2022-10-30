@@ -584,12 +584,19 @@
   }(); // 添加watcher
 
 
-  Dep.target = null;
+  Dep.target = null; // 处理多个watcher 渲染的 和 coputed的
+
+  var stack = [];
   function pushTarget(watcher) {
-    Dep.target = watcher;
+    Dep.target = watcher; // 入栈
+
+    stack.push(watcher);
   }
   function popTarget() {
-    Dep.target = null;
+    // Dep.target = null
+    // 解析一个watcher删除一个watcher
+    stack.pop();
+    Dep.target = stack[stack.length - 1]; //获取前面的一个watcher
   }
 
   function observer(data) {
@@ -751,6 +758,10 @@
       this.id = id++;
       this.user = !!options.user; //!! 保证为布尔值
 
+      this.lazy = options.lazy; // 如果为true,是computed属性
+
+      this.dirty = this.lazy; // 取值时，表示用户是否执行
+
       this.deps = []; //watcher存放dep 
 
       this.depsId = new Set(); // 存放不重复的dep id
@@ -772,10 +783,10 @@
 
           return obj; //vm.a.b.c
         };
-      } // 初次渲染  保存初始值
+      } // 初次渲染  保存初始值 (computed模式初始不加载)
 
 
-      this.value = this.get(); //保存watcher初始值
+      this.value = this.lazy ? void 0 : this.get(); //保存watcher初始值
     }
 
     _createClass(watcher, [{
@@ -797,7 +808,7 @@
       value: function get() {
         pushTarget(this); // 给dep添加watcher
 
-        var value = this.getters(); //渲染页面 vm._update(vm._render) _s(msg) 拿到vm.msg
+        var value = this.getters.call(this.vm); //渲染页面 vm._update(vm._render) _s(msg) 拿到vm.msg
 
         popTarget(); //取消watcher
 
@@ -810,7 +821,12 @@
         // 不要数据更新后每次调用
         // 缓存
         // this.get()
-        queueWatcher(this);
+        //lazy为ture 为computed
+        if (this.lazy) {
+          this.dirty = true;
+        } else {
+          queueWatcher(this);
+        }
       }
     }, {
       key: "run",
@@ -825,6 +841,24 @@
           this.cb.call(this.vm, value, oldValue);
         }
       }
+    }, {
+      key: "evaluate",
+      value: function evaluate() {
+        this.value = this.get();
+        this.dirty = false;
+      } // 相互收集
+
+    }, {
+      key: "depend",
+      value: function depend() {
+        // 收集渲染watcher,存放到dep中，dep再会存放watcher
+        // 最终可以通过watcher找到所有的dep,让所有的dep都记住渲染的watcher
+        var i = this.deps.length;
+
+        while (i--) {
+          this.deps[i].depend();
+        }
+      }
     }]);
 
     return watcher;
@@ -837,8 +871,8 @@
 
   function flushWatcher() {
     queue.forEach(function (watcher) {
-      watcher.run(); //执行更新函数
-      // watcher.cb() // updated 声明周期函数
+      watcher.run(); //防抖执行回调更新函数
+      // watcher.cb() // updated 声明周期函数 简易执行回调
     });
     queue = [];
     has = {};
@@ -895,8 +929,12 @@
 
     if (ops.methods) ;
 
-    if (ops.computed) ;
-  } // 初始化data
+    if (ops.computed) {
+      initComputed(vm);
+    }
+  }
+  /* initData------------------------------------------------------- */
+  // 初始化data
 
   function initData(vm) {
     var data = vm.$options.data; // data()  this默认window 
@@ -920,6 +958,8 @@
       }
     });
   }
+  /* initWatch------------------------------------------------------- */
+  // 一. watch4种使用方式
   // 1. 属性方法
   // 2. 属性数组
   // 3.属性：对象
@@ -947,7 +987,13 @@
   //     aa(){console.log('ccc')}
   // },
   // 二.vue中的watch格式化
-  // 三 watch的最终实现方式,$watch
+  // 三 watch的最终实现方式, watch
+  // 通过高阶函数，
+  // 四  面试： watch和computed的区别
+  // computed具有缓存机制，通过dirty变量是实现
+  // watch 回调函数
+  // 问题：视图中 变量没更新dom
+  // 因为这里有多个watcher,渲染watcher  和 computed watcher
 
 
   function initWatch(vm) {
@@ -998,6 +1044,92 @@
 
     return vm.$watch(vm, exprOrfn, handler, options);
   }
+  /* initComputed------------------------------------------------------- */
+
+
+  function initComputed(vm) {
+    var computed = vm.$options.computed; // 1.通过watcher实现
+
+    var watcher$1 = vm._computerWatcher = {}; // 2.将computed属性通过defineProperty进行处理
+
+    for (var key in computed) {
+      var userDef = computed[key]; // 获取get
+
+      var getters = typeof userDef == 'function' ? userDef : userDef.get; // 给每一个computed属性添加一个watcher getters为computed函数或对象的get函数
+
+      watcher$1[key] = new watcher(vm, getters, function () {}, {
+        lazy: true
+      }); // defineReactive
+      //lazy不调用时不计算
+
+      defineComputed(vm, key, userDef); // 该方法执行了
+      //1.响应式处理key 
+      //2. 重写key的getter() 
+      // （1） 如果第一次取值dirty为true则执行watcher的evaluate方法计算computed的函数，并赋值给watcher.value缓存
+      // （2） 满足条件Dep.target有值;收集computed属性的watcehr依赖;执行顺序为; 
+      //  watcher.depend() =>
+      //  deps[i].depend() => Dep.target.addDep(this) => watcher.addDep => 
+      //  dep.addSub => dep中this.subs.push(watcher)
+      // （3）Dep中使用stack=[]接收watcher,Dep.target赋值最后一个,如果有computed则Dep需要收集两个;
+    } // console.log(vm);
+
+  }
+
+  var sharePropDefinition = {}; // 响应式处理computed的值
+
+  function defineComputed(target, key, userDef) {
+    sharePropDefinition = {
+      enumable: true,
+      configurable: true,
+      get: function get() {},
+      set: function set() {}
+    };
+
+    if (typeof userDef == 'function') {
+      // sharePropDefinition.get  = userDef
+      sharePropDefinition.get = createComputedGetter(key);
+    } else {
+      // 对象
+      // sharePropDefinition.get = userDef.get
+      sharePropDefinition.get = createComputedGetter(key);
+      sharePropDefinition.set = userDef.set;
+    } //  代理 target:vue  key computed的属性
+
+
+    Object.defineProperty(target, key, sharePropDefinition);
+  } // 高阶函数,缓存机制
+
+
+  function createComputedGetter(key) {
+    //返回用户的computed方法
+    // return 函数里的 this指向被调用对象的this => vm
+    // 不这样写this为函数本身
+    return function () {
+      // dirty 为true执行用户方法
+      var watcher = this._computerWatcher[key];
+
+      if (watcher) {
+        if (watcher.dirty) {
+          //dirty true第一次取值，计算get;false读取缓存 watcher.value
+          // 执行方法,求值 重新定义一个方法
+          watcher.evaluate(); //运行用户的computed方法
+        } // 判断是否有渲染wathcer，如果有执行 ：相互存放watcher
+
+
+        if (Dep.target) {
+          // 说明 还有渲染watcher,收集起来
+          watcher.depend(); //计算watcher收集渲染watcher
+        } // 重复使用，不重新计算
+
+
+        return watcher.value;
+      }
+    };
+  }
+  /* initComputed------------------------------------------------------- */
+
+  /* stateMixin------------------------------------------------------- */
+
 
   function stateMixin(vm) {
     // 队列  vue自己的nexttick
@@ -1022,6 +1154,7 @@
       }
     };
   }
+  /* stateMixin------------------------------------------------------- */
 
   // 将虚拟dom变成真实dom
   function patch(oldVnode, vnode) {
@@ -1186,6 +1319,35 @@
         }
       }
     }
+    /* 测试diff算法 => 放置src/index.js里测似 */
+    //初始化创建vnode 
+    // let vm1 = new Vue({data:{name:'zhangsan vnode1'}}) //
+    // // let render1 = compileToFunction(`<div id="a" cc='cc' style="color:blue;font-size:18px">{{name}}</div>`)
+    // let render1 = compileToFunction(`<ul>
+    // <li key='a'>a</li>
+    // <li key='b'>b</li>
+    // <li key='c'>c</li>
+    // <li key='f'>f1</li>
+    // </ul>`)
+    // let vnode1 = render1.call(vm1)
+    // document.body.appendChild(createEl(vnode1))
+    // // 数据更新 计算diff最小化更新 => patch方法
+    // let vm2 = new Vue({data:{name:'lisi vnode2'}}) //
+    // // let render2 = compileToFunction(`<div id="b" name="test" style="color:gray;font-size:22px">{{name}}</div>`)
+    // let render2 = compileToFunction(`<ul>
+    // <li key='f'>f</li>
+    // <li key='g'>g</li>
+    // <li key='e'>e</li>
+    // <li key='h'>h</li>
+    // <li key='a'>a2</li>
+    // </ul>`)
+    // let vnode2 = render2.call(vm2)
+    // // document.body.appendChild(createEl(vnode2))
+    // // 通过patch比对
+    // setTimeout(() => {
+    //      patch(vnode1,vnode2)
+    // }, 2000);
+
   } // 添加属性
 
 
