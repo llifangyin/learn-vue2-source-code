@@ -152,13 +152,14 @@ function initComputed(vm){
         defineComputed(vm,key,userDef) 
         // 该方法执行了
         //1.响应式处理key 
-        //2. 重写key的getter() 
+        //2. 重写key的getter() => 对应watcher的value
             // （1） 如果第一次取值dirty为true则执行watcher的evaluate方法计算computed的函数，并赋值给watcher.value缓存
             // （2） 满足条件Dep.target有值;收集computed属性的watcehr依赖;执行顺序为; 
                 //  watcher.depend() =>
                 //  deps[i].depend() => Dep.target.addDep(this) => watcher.addDep => 
                 //  dep.addSub => dep中this.subs.push(watcher)
             // （3）Dep中使用stack=[]接收watcher,Dep.target赋值最后一个,如果有computed则Dep需要收集两个;
+            // (4) watcher.update更新数据时=>ueueWatcher=>queue.push(watcher)=>flushWatcher=>遍历queue中的watcher.run()
 
     }
     // console.log(vm);
@@ -190,10 +191,11 @@ function defineComputed(target,key,userDef){
 // 高阶函数,缓存机制
 function createComputedGetter(key){//返回用户的computed方法
     // return 函数里的 this指向被调用对象的this => vm
-    // 不这样写this为函数本身
+    // 不这样写this为函数本身,调用的时候才会走return里的内容
     return function(){
         // dirty 为true执行用户方法
         let watcher = this._computerWatcher[key]
+        // console.log('调用computed的getter',key,watcher.dirty,watcher);
         if(watcher){
             if(watcher.dirty){//dirty true第一次取值，计算get;false读取缓存 watcher.value
                 // 执行方法,求值 重新定义一个方法

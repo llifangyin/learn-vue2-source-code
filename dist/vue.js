@@ -768,10 +768,13 @@
       // 判断
 
       if (typeof updateComponent === 'function') {
+        //初始化$moutned会执行一次渲染：
+        // initMixin => _init => $mounted => (lifecyle)mountComponent => new Watcher
         this.getters = updateComponent; //更新视图
       } else {
-        //watch监听的属性名 key
+        console.log(this.exprOrfn, 222); //watch监听的属性名 key
         // 字符串变成函数
+
         this.getters = function () {
           // a.b.c 深层监听
           var path = this.exprOrfn.split('.');
@@ -806,7 +809,9 @@
     }, {
       key: "get",
       value: function get() {
+        // console.log(this,111);
         pushTarget(this); // 给dep添加watcher
+        // console.log(this.getters,222);
 
         var value = this.getters.call(this.vm); //渲染页面 vm._update(vm._render) _s(msg) 拿到vm.msg
 
@@ -1064,13 +1069,14 @@
 
       defineComputed(vm, key, userDef); // 该方法执行了
       //1.响应式处理key 
-      //2. 重写key的getter() 
+      //2. 重写key的getter() => 对应watcher的value
       // （1） 如果第一次取值dirty为true则执行watcher的evaluate方法计算computed的函数，并赋值给watcher.value缓存
       // （2） 满足条件Dep.target有值;收集computed属性的watcehr依赖;执行顺序为; 
       //  watcher.depend() =>
       //  deps[i].depend() => Dep.target.addDep(this) => watcher.addDep => 
       //  dep.addSub => dep中this.subs.push(watcher)
       // （3）Dep中使用stack=[]接收watcher,Dep.target赋值最后一个,如果有computed则Dep需要收集两个;
+      // (4) watcher.update更新数据时=>ueueWatcher=>queue.push(watcher)=>flushWatcher=>遍历queue中的watcher.run()
     } // console.log(vm);
 
   }
@@ -1103,10 +1109,10 @@
   function createComputedGetter(key) {
     //返回用户的computed方法
     // return 函数里的 this指向被调用对象的this => vm
-    // 不这样写this为函数本身
+    // 不这样写this为函数本身,调用的时候才会走return里的内容
     return function () {
       // dirty 为true执行用户方法
-      var watcher = this._computerWatcher[key];
+      var watcher = this._computerWatcher[key]; // console.log('调用computed的getter',key,watcher.dirty,watcher);
 
       if (watcher) {
         if (watcher.dirty) {

@@ -18,8 +18,11 @@ class watcher{
         this.depsId = new Set() // 存放不重复的dep id
         // 判断
         if(typeof updateComponent === 'function'){
+            //初始化$moutned会执行一次渲染：
+            // initMixin => _init => $mounted => (lifecyle)mountComponent => new Watcher
             this.getters = updateComponent //更新视图
         }else{
+            console.log(this.exprOrfn,222);
             //watch监听的属性名 key
             // 字符串变成函数
             this.getters =  function(){
@@ -48,7 +51,9 @@ class watcher{
     } 
     // 初次渲染
     get(){
+        // console.log(this,111);
         pushTarget(this) // 给dep添加watcher
+        // console.log(this.getters,222);
         const value = this.getters.call(this.vm) //渲染页面 vm._update(vm._render) _s(msg) 拿到vm.msg
         popTarget() //取消watcher
         return value //初始值
