@@ -199,7 +199,7 @@ function createComputedGetter(key){//返回用户的computed方法
         if(watcher){
             if(watcher.dirty){//dirty true第一次取值，计算get;false读取缓存 watcher.value
                 // 执行方法,求值 重新定义一个方法
-                watcher.evaluate() //运行用户的computed方法
+                watcher.evaluate() //运行用户的computed方法 触发observe的get会进行依赖收集
             }
             // 判断是否有渲染wathcer，如果有执行 ：相互存放watcher
             if(Dep.target){
