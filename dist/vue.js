@@ -393,8 +393,7 @@
 
       if (lastindex < text.length) {
         tokens.push(JSON.stringify(text.slice(lastindex)));
-      } // console.log({tokens});
-
+      }
 
       return "_v(".concat(tokens.join('+'), ")");
     }
@@ -424,7 +423,7 @@
     //     ) {
     //     with(this){return _c('div',{id:"app",style:{"color":"cyan","margin":"10px"}},_v("\n        hello "+_s(msg)+" \n        "),_c('h2',undefined,_v("张三")),_v("\n    "))}
     //     }
-    // with的用法 改变作用域
+    // with的用法 改变作用域 继而使模板里的变量name 可以直接显示为this.name
     // let obj = {a:1,b:2}
     // with(obj){
     //     console.log(a,b);
@@ -563,7 +562,11 @@
         // console.log(Dep.target);
         // 希望watcher可以存放dep 双向记忆
         // this.subs.push(Dep.target) //转至 watcher里 addDep添加
-        Dep.target.addDep(this); //dep实例添加至target=>watcher
+        Dep.target.addDep(this); // 在watcher中deps添加dep
+        // this.deps.push(dep)
+        // this.depsId.add(id)
+        // ==>
+        // dep.addSub(this(watcher)) //dep中subs也添加当前watcher
       }
     }, {
       key: "addSub",
@@ -595,6 +598,7 @@
   function popTarget() {
     // Dep.target = null
     // 解析一个watcher删除一个watcher
+    // console.log(stack,11);
     stack.pop();
     Dep.target = stack[stack.length - 1]; //获取前面的一个watcher
   }
@@ -611,7 +615,7 @@
     function Observer(data) {
       _classCallCheck(this, Observer);
 
-      // 定义一个属性
+      // 定义一个属性__ob__ 指向本身实例
       Object.defineProperty(data, '__ob__', {
         enumerable: false,
         value: this //this当前实例 this.observeArray
@@ -652,18 +656,26 @@
     }]);
 
     return Observer;
-  }();
+  }(); // 每一个defineReactive方法，会创建一个私有属性 dep 即Dep的实例
+
 
   function defineReactive(data, key, value) {
     var childDep = observer(value); // 给每个属性添加一个dep
 
-    var dep = new Dep();
+    var dep = new Dep(); //私有属性
+    // console.log(key,dep,Dep.target);
+
     Object.defineProperty(data, key, {
       get: function get() {
         // console.log(childDep,'childDep');
+        // console.log(Dep.target,1111);
         if (Dep.target) {
           //注意此处是大写,target是静态私有变量不是实例的属性
-          dep.depend();
+          dep.depend(); // 在watcher中deps添加dep
+          // this.deps.push(dep)
+          // this.depsId.add(id)
+          // ==>
+          // dep.addSub(this(watcher)) //dep中subs也添加当前watcher
 
           if (childDep.dep) {
             // 如果有 进行数组收集
@@ -772,12 +784,13 @@
         // initMixin => _init => $mounted => (lifecyle)mountComponent => new Watcher
         this.getters = updateComponent; //更新视图
       } else {
-        console.log(this.exprOrfn, 222); //watch监听的属性名 key
+        //watch监听的属性名 key
         // 字符串变成函数
-
-        this.getters = function () {
+        this.getters = function (_vm) {
           // a.b.c 深层监听
-          var path = this.exprOrfn.split('.');
+          // console.log(_vm,111);
+          var path = _vm.exprOrfn.split('.');
+
           var obj = vm;
 
           for (var i = 0; i < path.length; i++) {
@@ -786,7 +799,8 @@
 
           return obj; //vm.a.b.c
         };
-      } // 初次渲染  保存初始值 (computed模式初始不加载)
+      } // 初始化 dom挂载mountComponent中会执行一次
+      // 初次渲染  保存初始值 (computed模式初始不加载)
 
 
       this.value = this.lazy ? void 0 : this.get(); //保存watcher初始值
@@ -804,18 +818,21 @@
 
           dep.addSub(this);
         }
-      } // 初次渲染
-
+      }
     }, {
       key: "get",
       value: function get() {
-        // console.log(this,111);
-        pushTarget(this); // 给dep添加watcher
+        // 初始化 dom挂载mountComponent中会执行一次
+        pushTarget(this); // 给Dep添加watcher => Dep.target = watcher 
         // console.log(this.getters,222);
 
-        var value = this.getters.call(this.vm); //渲染页面 vm._update(vm._render) _s(msg) 拿到vm.msg
+        var value = this.getters.call(this.vm, this); //渲染页面 vm._update(vm._render) _s(msg) 拿到with函数vm.msg
+        // 渲染过程中会调用一次observe中的getter,执行  该初始化渲染的watcher的deps push了new的dep
+        //                                           new的dep的subs push了 这个初次渲染的watcher实例
+        // console.log(Dep.target);
 
-        popTarget(); //取消watcher
+        popTarget(); //取消watcher  Dep.target = stack[stack.length-1] //默认情况length-1 结果为null
+        // console.log(Dep.target);
 
         return value; //初始值
       } // 更新数据
@@ -845,7 +862,8 @@
           // 执行handler 用户的watcher的cb
           this.cb.call(this.vm, value, oldValue);
         }
-      }
+      } // computed 执行计算方法
+
     }, {
       key: "evaluate",
       value: function evaluate() {
@@ -924,18 +942,18 @@
     if (ops.props) ;
 
     if (ops.data) {
-      initData(vm);
+      initData(vm); // √
     } // 先初始化data,再初始化watch
 
 
     if (ops.watch) {
-      initWatch(vm);
+      initWatch(vm); //√
     }
 
     if (ops.methods) ;
 
     if (ops.computed) {
-      initComputed(vm);
+      initComputed(vm); //√
     }
   }
   /* initData------------------------------------------------------- */
@@ -1055,7 +1073,7 @@
   function initComputed(vm) {
     var computed = vm.$options.computed; // 1.通过watcher实现
 
-    var watcher$1 = vm._computerWatcher = {}; // 2.将computed属性通过defineProperty进行处理
+    var watcher$1 = vm._computedWatcher = {}; // 2.将computed属性通过defineProperty进行处理
 
     for (var key in computed) {
       var userDef = computed[key]; // 获取get
@@ -1065,11 +1083,10 @@
       watcher$1[key] = new watcher(vm, getters, function () {}, {
         lazy: true
       }); // defineReactive
-      //lazy不调用时不计算
+      //lazy不调用时不计算 
 
       defineComputed(vm, key, userDef); // 该方法执行了
-      //1.响应式处理key 
-      //2. 重写key的getter() => 对应watcher的value
+      //1.响应式处理key的getter() => 对应watcher的value
       // （1） 如果第一次取值dirty为true则执行watcher的evaluate方法计算computed的函数，并赋值给watcher.value缓存
       // （2） 满足条件Dep.target有值;收集computed属性的watcehr依赖;执行顺序为; 
       //  watcher.depend() =>
@@ -1077,6 +1094,7 @@
       //  dep.addSub => dep中this.subs.push(watcher)
       // （3）Dep中使用stack=[]接收watcher,Dep.target赋值最后一个,如果有computed则Dep需要收集两个;
       // (4) watcher.update更新数据时=>ueueWatcher=>queue.push(watcher)=>flushWatcher=>遍历queue中的watcher.run()
+      // 2. 当set对应data值时,会触发dep.notify方法执行watcher.update() => watcher.run()从而执行计算和刷新watcher
     } // console.log(vm);
 
   }
@@ -1112,7 +1130,7 @@
     // 不这样写this为函数本身,调用的时候才会走return里的内容
     return function () {
       // dirty 为true执行用户方法
-      var watcher = this._computerWatcher[key]; // console.log('调用computed的getter',key,watcher.dirty,watcher);
+      var watcher = this._computedWatcher[key]; // console.log('调用computed的getter',key,watcher.dirty,watcher);
 
       if (watcher) {
         if (watcher.dirty) {
@@ -1166,6 +1184,7 @@
   function patch(oldVnode, vnode) {
     // console.log(oldVnode,vnode);
     // 第一次渲染 oldnode 是一个真实dom
+    // console.log(oldVnode.nodeType);
     if (oldVnode.nodeType == 1) {
       // 1 创建真实的dom
       // console.log(oldVnode,vnode);
@@ -1534,6 +1553,7 @@
         } // 挂载组件
         // 1.vm._render将render函数变成虚拟dom
         // 2. vm._update 将vnode变成真实dom
+        // console.log(vm,el);
 
 
         mountComponent(vm);
@@ -1594,18 +1614,19 @@
 
   function Vue(options) {
     this._init(options);
-  }
+  } // 给vue.prototype添加_init(initState(),$mounted)方法 ,$mounted方法 把挂载el内的html转为render字符串，转为虚拟dom，渲染成真实dom
+  // initState方法在initState中定义执行initProps,initData,initWatch,initMethods,initComputed等初始化函数
 
-  initMixin(Vue); // 添加数据初始化
 
-  lifecycleMixin(Vue); //添加声明周期
+  initMixin(Vue);
+  lifecycleMixin(Vue); //给vue.prototype添加_update方法 创建虚拟dom
 
-  renderMixin(Vue); //render函数 创建虚拟dom
+  renderMixin(Vue); //给Vue.prototype添加_c,_v,_s,render函数用来创建虚拟dom
 
-  stateMixin(Vue); // 给实例添加$nextTick 方法
+  stateMixin(Vue); // 给Vue.prototype添加$nextTick  $watch方法 
   // 全局方法 Vuemixin vue.component extend...
 
-  initGlobApi(Vue);
+  initGlobApi(Vue); //Mixin (mergeOptions)
 
   return Vue;
 

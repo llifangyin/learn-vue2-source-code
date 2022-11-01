@@ -64,7 +64,6 @@ function gen(node){
         if(lastindex<text.length){
             tokens.push(JSON.stringify(text.slice(lastindex)))
         }
-        // console.log({tokens});
         return `_v(${tokens.join('+')})`
     }
 }

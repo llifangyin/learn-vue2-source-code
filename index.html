@@ -64,7 +64,7 @@
             },
             watch:{
                 // name(newVal,oldVal){
-                //     console.log(newVal,'name');
+                //     console.log(newVal,'watch-name');
                 // },
                 // msg(newVal,oldVal){
                 //     console.log(newVal,'msg');
@@ -77,9 +77,9 @@
                 //         console.log(newVal,'arr2');
                 //     }
                 // ],
-                // 'a.b.c'(newVal,oldVal){
-                //     console.log('a.b.c',newVal);
-                // },
+                'a.b.c'(newVal,oldVal){
+                    console.log('a.b.c',newVal);
+                },
                 // d:{
                 //     handler(val){
                 //         console.log('d',val);
@@ -134,7 +134,7 @@
         // vm.a.b.c = 1
         setTimeout(() => {
             vm.firstName = 'lee'
-            // vm.name = 'changed msg'
+            vm.name = 'changed msg'
             // vm.fullName2 = '111'
             // console.log(vm.fullName);
             // vm.msg = {name:'yyy'}
@@ -147,6 +147,7 @@
             vm.$nextTick(()=>{
                 // console.log('$nexttick==>',vm.$el.innerHTML);
             })
+            console.log(vm);
         }, 1000);
         // setTimeout(() => {
         // }, 1000);

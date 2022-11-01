@@ -22,12 +22,12 @@ class watcher{
             // initMixin => _init => $mounted => (lifecyle)mountComponent => new Watcher
             this.getters = updateComponent //更新视图
         }else{
-            console.log(this.exprOrfn,222);
             //watch监听的属性名 key
             // 字符串变成函数
-            this.getters =  function(){
+            this.getters =  function(_vm){
                 // a.b.c 深层监听
-                let path = this.exprOrfn.split('.')
+                // console.log(_vm,111);
+                let path = _vm.exprOrfn.split('.')
                 let obj = vm
                 for(let i =0 ;i<path.length;i++){
                     obj = obj[path[i]]
@@ -35,6 +35,9 @@ class watcher{
                 return obj //vm.a.b.c
             }
         }
+
+        // 初始化 dom挂载mountComponent中会执行一次
+
         // 初次渲染  保存初始值 (computed模式初始不加载)
         this.value = this.lazy ? void 0: this.get() //保存watcher初始值
     }   
@@ -49,13 +52,16 @@ class watcher{
         }
 
     } 
-    // 初次渲染
     get(){
-        // console.log(this,111);
-        pushTarget(this) // 给dep添加watcher
+        // 初始化 dom挂载mountComponent中会执行一次
+        pushTarget(this) // 给Dep添加watcher => Dep.target = watcher 
         // console.log(this.getters,222);
-        const value = this.getters.call(this.vm) //渲染页面 vm._update(vm._render) _s(msg) 拿到vm.msg
-        popTarget() //取消watcher
+        const value = this.getters.call(this.vm,this) //渲染页面 vm._update(vm._render) _s(msg) 拿到with函数vm.msg
+        // 渲染过程中会调用一次observe中的getter,执行  该初始化渲染的watcher的deps push了new的dep
+        //                                           new的dep的subs push了 这个初次渲染的watcher实例
+        // console.log(Dep.target);
+        popTarget() //取消watcher  Dep.target = stack[stack.length-1] //默认情况length-1 结果为null
+        // console.log(Dep.target);
         return value //初始值
     }
     // 更新数据
@@ -81,6 +87,7 @@ class watcher{
             this.cb.call(this.vm,value,oldValue)
         }
     }
+    // computed 执行计算方法
     evaluate(){
         this.value = this.get()
         this.dirty = false 

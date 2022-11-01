@@ -17,7 +17,7 @@ export function compileToFunction(el){
             //     with(this){return _c('div',{id:"app",style:{"color":"cyan","margin":"10px"}},_v("\n        hello "+_s(msg)+" \n        "),_c('h2',undefined,_v("张三")),_v("\n    "))}
     //     }
     
-    // with的用法 改变作用域
+    // with的用法 改变作用域 继而使模板里的变量name 可以直接显示为this.name
     // let obj = {a:1,b:2}
     // with(obj){
         //     console.log(a,b);

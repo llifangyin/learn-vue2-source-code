@@ -10,7 +10,7 @@ export function observer(data){
 
 class Observer{
     constructor(data){
-        // 定义一个属性
+        // 定义一个属性__ob__ 指向本身实例
         Object.defineProperty(data,'__ob__',{
             enumerable:false,
             value:this,//this当前实例 this.observeArray
@@ -44,16 +44,24 @@ class Observer{
     }
 
 }
+// 每一个defineReactive方法，会创建一个私有属性 dep 即Dep的实例
 function defineReactive(data,key,value){
     let childDep = observer(value)
     // 给每个属性添加一个dep
-    let dep = new Dep()
+    let dep = new Dep() //私有属性
+    // console.log(key,dep,Dep.target);
     Object.defineProperty(data,key,{
         get(){
             // console.log(childDep,'childDep');
+            // console.log(Dep.target,1111);
             if(Dep.target){ 
             //注意此处是大写,target是静态私有变量不是实例的属性
                 dep.depend()
+                 // 在watcher中deps添加dep
+                // this.deps.push(dep)
+                // this.depsId.add(id)
+                // ==>
+                // dep.addSub(this(watcher)) //dep中subs也添加当前watcher
                 if(childDep.dep){
                     // 如果有 进行数组收集
                     childDep.dep.depend() 

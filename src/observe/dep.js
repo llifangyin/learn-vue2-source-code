@@ -10,7 +10,12 @@ class Dep{
         // 希望watcher可以存放dep 双向记忆
 
         // this.subs.push(Dep.target) //转至 watcher里 addDep添加
-        Dep.target.addDep(this) //dep实例添加至target=>watcher
+        Dep.target.addDep(this) 
+        // 在watcher中deps添加dep
+        // this.deps.push(dep)
+        // this.depsId.add(id)
+        // ==>
+        // dep.addSub(this(watcher)) //dep中subs也添加当前watcher
 
     }
     addSub(watcher){
@@ -35,6 +40,7 @@ export function pushTarget(watcher){
 export function popTarget(){
     // Dep.target = null
     // 解析一个watcher删除一个watcher
+    // console.log(stack,11);
     stack.pop()
     Dep.target = stack[stack.length-1] //获取前面的一个watcher
 }

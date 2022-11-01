@@ -2,6 +2,7 @@
 export function patch(oldVnode,vnode){
     // console.log(oldVnode,vnode);
     // 第一次渲染 oldnode 是一个真实dom
+    // console.log(oldVnode.nodeType);
     if(oldVnode.nodeType == 1){
         // 1 创建真实的dom
         // console.log(oldVnode,vnode);
