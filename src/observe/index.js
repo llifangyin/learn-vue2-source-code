@@ -49,7 +49,7 @@ function defineReactive(data,key,value){
     let childDep = observer(value)
     // 给每个属性添加一个dep
     let dep = new Dep() //私有属性
-    // console.log(key,dep,Dep.target);
+    console.log(key,'defineReactive初始化响应式',dep);
     Object.defineProperty(data,key,{
         get(){
             // console.log(childDep,'childDep');
@@ -62,6 +62,7 @@ function defineReactive(data,key,value){
                 // this.depsId.add(id)
                 // ==>
                 // dep.addSub(this(watcher)) //dep中subs也添加当前watcher
+                console.log('执行 observe 中的getter,获取最新的值',dep,key);
                 if(childDep.dep){
                     // 如果有 进行数组收集
                     childDep.dep.depend() 
@@ -76,6 +77,7 @@ function defineReactive(data,key,value){
             if(newValue==value){
                 return
             }
+            console.log('observe set 监听name修改');
             observer(newValue)
             value = newValue
             // 更新依赖

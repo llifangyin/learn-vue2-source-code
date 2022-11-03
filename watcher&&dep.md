@@ -96,7 +96,10 @@ new watcher 默认执行get函数，读取一次vm.data的值，调用observe的
 ```js
  new Watcher(vm,getters||handler,()=>{},{lazy:true})
 ```
-Q:watcher的get方法中：判断if(Dep.target)再进行watcher.depend()互相收集依赖,Dep.target不是每次赋值完就pop吗？
+Q:computed的get方法中：判断if(Dep.target)再进行watcher.depend()互相收集依赖,Dep.target不是每次赋值完就pop吗？Dep中，stack什么情况下length>1?
+当计算computed的值时，取到vm的变量，触发observe中的getter,此时Dep.target为computed的watcher,再observe中
+会将各个变量 fisrtName lastName的dep中push computed-watcher,再computed-watcher的deps中push firstName和
+lastName的dep.
 
 
 
@@ -104,3 +107,8 @@ Q:watcher的get方法中：判断if(Dep.target)再进行watcher.depend()互相�
 在给每个data进行响应式处理时，defineReactive函数里定义私有变量，dep=Dep(),没一个变量都可以找到一个对应的dep
 
 Q: 一个变量对应一个dep,对应一个渲染watcher，可以有多个computed watcher,一个watch watcher, 对不对？
+一个变量对应一个dep：data中每一个变量进行数据劫持(定义getter)时,定义一个私有变量dep，只能通过变量getter时获取得到
+watcher有以下几种 
+1. 渲染watcher 即render watcher, 在初始化数据劫持后执行后执行，初始执行函数为vm._update 渲染dom
+2. computed watcher，1 执行完毕后执行初始化绑定opiton里的wathcer配置项，主执行函数为计算函数，计算时会取vm的变量，调用observe的getter,此时Dep.target有值，会进行子变量的dep和当前计算watcher的互相收集
+3. watch watcher，1 执行完毕后初始化，拿到options watch配置的key和handler,初始化watcher,此时主函数是个字符串key,初始执行为自定义watcher的getter计算watcher.value来获取oldValue,该过程中调用vm.变量，同样进行2中的互相收集，该watcher的cb函数为配置项的handler：即监听后的用户处理回调；最后一个配置项user:true，用来区分update时，获取到新值后再执行回调函数。

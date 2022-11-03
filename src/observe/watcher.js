@@ -1,6 +1,6 @@
 import { nextTick } from "../utils/nextTick"
 import { popTarget, pushTarget } from "./dep"
-
+import Dep from './dep'
 // 1 同过这个类 watcher实现更新
 let id = 0
 class watcher{
@@ -25,6 +25,9 @@ class watcher{
             //watch监听的属性名 key
             // 字符串变成函数
             this.getters =  function(_vm){
+                console.log('$watch的watcher.get方法$,取当前watcher的值赋给watcher.value');
+                console.log('取值过程中，调用的vm.值，触发observe的getter事件，把当前的watch watcher收集到各个属性的dep中');
+                console.log('当set一个值时，会触发当前watch watcher的方法，判断user =true 执行回调函数cb,实现监听');
                 // a.b.c 深层监听
                 // console.log(_vm,111);
                 let path = _vm.exprOrfn.split('.')
@@ -35,7 +38,7 @@ class watcher{
                 return obj //vm.a.b.c
             }
         }
-
+        console.log('=== watcher-init',this);
         // 初始化 dom挂载mountComponent中会执行一次
 
         // 初次渲染  保存初始值 (computed模式初始不加载)
@@ -53,13 +56,32 @@ class watcher{
 
     } 
     get(){
+
+        console.log('$render&&computed$-watcher.get 方法执行');
         // 初始化 dom挂载mountComponent中会执行一次
         pushTarget(this) // 给Dep添加watcher => Dep.target = watcher 
         // console.log(this.getters,222);
-        const value = this.getters.call(this.vm,this) //渲染页面 vm._update(vm._render) _s(msg) 拿到with函数vm.msg
+        console.log('Dep.target的值',Dep.target);
+        console.log('执行render方法或computed方法');
+        const value = this.getters.call(this.vm,this)
+        console.log('render 完毕 pop Dep.target');
+        // 情况1 => 初始化渲染页面
+         //渲染页面 vm._update(vm._render) _s(msg) 拿到with函数vm.msg
         // 渲染过程中会调用一次observe中的getter,执行  该初始化渲染的watcher的deps push了new的dep
-        //                                           new的dep的subs push了 这个初次渲染的watcher实例
-        // console.log(Dep.target);
+        //  new的dep的subs push了 这个初次渲染的watcher实例
+
+        // 情况2 => computed的watcher，初始化watcher,lazy=true不调用get,第一次取computed值时，执行watcher.evaluate方法
+        //  => 从而执行watcher.get方法，执行该方法时：先执行pushTarget方法，给Dep.target添加computed的watcher,然后
+        // 调用计算方法，当取vm.变量值时=>（触发observe中的get方法，发现有Dep.target(computed的wather),defineReactive私有变量的
+        // dep和计算computed的watcher互相收集依赖，当触发变量的set时,触发dep.notify遍历deps执行watcher.update,计算watcher也得到更新)
+        // update方法执行queueWatcher => flushWatcher => 遍历watcher.run  => watcher.get,
+        // computed的watcher= lazy为true不执行queueWatcher方法,dirity赋值为true;
+        // 执行渲染watcher,执行get方法,Dep.target值取渲染watcher,然后取vm.遍历:(1).普通变量，取observe.getter方法,新的渲染watcher和dep互相收集
+    //      (2). computed变量，取值触发 computed中的createComputedGetter,
+                // dirty为true 执行计算方法evaluate,执行计算watcher的get中的computed计算函数，得到最新值；
+                // 执行computed的watcher.depend(),执行：deps[i].depend() => Dep.target.addDep(this) 
+    //      => watcher.addDep => dep.addSub => dep中this.subs.push(watcher),互相收集;
+
         popTarget() //取消watcher  Dep.target = stack[stack.length-1] //默认情况length-1 结果为null
         // console.log(Dep.target);
         return value //初始值
@@ -107,6 +129,7 @@ let has = {}
 let pending = false
 // 队列处理
 function flushWatcher(){
+    console.log(queue,'queue-真正执行update队列');
      queue.forEach(watcher=>{
         watcher.run() //防抖执行回调更新函数
         // watcher.cb() // updated 声明周期函数 简易执行回调

@@ -8,18 +8,18 @@
 </head>
 <body>
     <div id="app"  style="color:#333;margin:10px;" >
-        <h2>
-            {{fullName}}
-        </h2>
-        <h2>
-            {{fullName2}}
-        </h2>
         hello  
+        <h2>
+        </h2>
         <h2>张三</h2>
         {{ name }}
-        <h2>{{arr}}</h2>
-        {{msg.name}}
     </div>
+    <!-- {{fullName}} -->
+    <!-- <h2>{{arr}}</h2>
+    {{msg.name}} -->
+    <!-- <h2>
+        {{fullName2}}
+    </h2> -->
     <!-- <h1>this is a h1</h1>  -->
     <script src="./dist/vue.js"></script>
     <script>
@@ -40,17 +40,17 @@
                 
                 return {
                     // msg : 'this is a msg',
-                    msg:{name:'xxx'},
+                    // msg:{name:'xxx'},
                     name:'this is a name',
-                    firstName:'Cobe',
-                    lastName:'Bryant',
-                    arr:[1,2,3],
-                    a:{
-                        b:{c:20}
-                    },
-                    d:'111',
-                    c:[1,2,3,{a:1}],
-                    e:111
+                    // firstName:'Cobe',
+                    // lastName:'Bryant',
+                    // arr:[1,2,3],
+                    // a:{
+                    //     b:{c:20}
+                    // },
+                    // d:'111',
+                    // c:[1,2,3,{a:1}],
+                    // e:111
                 }
             },
             created(){
@@ -63,9 +63,9 @@
 
             },
             watch:{
-                // name(newVal,oldVal){
-                //     console.log(newVal,'watch-name');
-                // },
+                name(newVal,oldVal){
+                    console.log(11111,newVal,'watch-name');
+                },
                 // msg(newVal,oldVal){
                 //     console.log(newVal,'msg');
                 // },
@@ -77,9 +77,9 @@
                 //         console.log(newVal,'arr2');
                 //     }
                 // ],
-                'a.b.c'(newVal,oldVal){
-                    console.log('a.b.c',newVal);
-                },
+                // 'a.b.c'(newVal,oldVal){
+                //     console.log('a.b.c',newVal);
+                // },
                 // d:{
                 //     handler(val){
                 //         console.log('d',val);
@@ -91,19 +91,19 @@
             computed:{
                 // 使用方式
                 // 1.属性：函数
-                fullName:function(){
-                    return this.firstName + this.lastName
-                },
+                // fullName:function(){
+                //     return this.firstName + this.lastName
+                // },
                 // 2.属性：对象
-                fullName2:{
-                    get(){
-                        return this.name + this.d
-                    },
-                    set(val){
-                        this.name = val
-                        this.d = 'custom computed'
-                    }
-                }
+                // fullName2:{
+                //     get(){
+                //         return this.name + this.d
+                //     },
+                //     set(val){
+                //         this.name = val
+                //         this.d = 'custom computed'
+                //     }
+                // }
 
 
                 // 获取实例的computed属性，通过object.defineProperty
@@ -133,8 +133,8 @@
         // console.log(vm.fullName);
         // vm.a.b.c = 1
         setTimeout(() => {
-            vm.firstName = 'lee'
-            vm.name = 'changed msg'
+            // vm.firstName = 'lee'
+            // vm.name = 'changed msg'
             // vm.fullName2 = '111'
             // console.log(vm.fullName);
             // vm.msg = {name:'yyy'}

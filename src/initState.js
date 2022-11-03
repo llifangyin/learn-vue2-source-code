@@ -150,17 +150,7 @@ function initComputed(vm){
         // defineReactive
         //lazy不调用时不计算 
         defineComputed(vm,key,userDef) 
-        // 该方法执行了
-        //1.响应式处理key的getter() => 对应watcher的value
-            // （1） 如果第一次取值dirty为true则执行watcher的evaluate方法计算computed的函数，并赋值给watcher.value缓存
-            // （2） 满足条件Dep.target有值;收集computed属性的watcehr依赖;执行顺序为; 
-                //  watcher.depend() =>
-                //  deps[i].depend() => Dep.target.addDep(this) => watcher.addDep => 
-                //  dep.addSub => dep中this.subs.push(watcher)
-            // （3）Dep中使用stack=[]接收watcher,Dep.target赋值最后一个,如果有computed则Dep需要收集两个;
-            // (4) watcher.update更新数据时=>ueueWatcher=>queue.push(watcher)=>flushWatcher=>遍历queue中的watcher.run()
-            
-        // 2. 当set对应data值时,会触发dep.notify方法执行watcher.update() => watcher.run()从而执行计算和刷新watcher
+        
     }
     // console.log(vm);
 }
@@ -192,17 +182,35 @@ function defineComputed(target,key,userDef){
 function createComputedGetter(key){//返回用户的computed方法
     // return 函数里的 this指向被调用对象的this => vm
     // 不这样写this为函数本身,调用的时候才会走return里的内容
+
+
+    // 该方法执行了
+        //1.响应式处理key的getter() => 对应watcher的value
+        // （1） 如果第一次取值dirty为true则执行watcher的evaluate方法计算computed的函数，并赋值给watcher.value缓存
+        // （2） 满足条件Dep.target有值;收集computed属性的watcehr依赖;执行顺序为; 
+            //  watcher.depend() =>
+            //  deps[i].depend() => Dep.target.addDep(this) => watcher.addDep => 
+            //  dep.addSub => dep中this.subs.push(watcher)
+        // （3）Dep中使用stack=[]接收watcher,Dep.target赋值最后一个,如果有computed则Dep需要收集两个;
+        // (4) watcher.update更新数据时=>ueueWatcher=>queue.push(watcher)=>flushWatcher=>遍历queue中的watcher.run()
+        
+    // 2. 当set对应data值时,会触发dep.notify方法执行watcher.update() => watcher.run()从而执行计算和刷新watcher
     return function(){
         // dirty 为true执行用户方法
         let watcher = this._computedWatcher[key]
-        // console.log('调用computed的getter',key,watcher.dirty,watcher);
+        console.log('$lazy$-调用computed lazy watcher的getter');
         if(watcher){
             if(watcher.dirty){//dirty true第一次取值，计算get;false读取缓存 watcher.value
                 // 执行方法,求值 重新定义一个方法
+                console.log('$lazy$ dirty = true 初始化计算computed方法');
                 watcher.evaluate() //运行用户的computed方法 触发observe的get会进行依赖收集
             }
             // 判断是否有渲染wathcer，如果有执行 ：相互存放watcher
             if(Dep.target){
+                // 比如 fullName 由 firstName和lastName组成 
+                // 渲染watcher取fullName时，开始取fisrtNmae和lastName,也就是渲染watcher调用computed watcher
+                // 这两个属性的dep收集当前的computed watcher ,这个计算watcher收集这两个属性的dep
+                console.log('computed-watcher互相收集',Dep.target);
                 // 说明 还有渲染watcher,收集起来
                 watcher.depend()  //计算watcher收集渲染watcher
             }

@@ -23,6 +23,7 @@ class Dep{
     }
     // 更新 watcher
     notify(){
+        console.log('notify-subs-arr 执行update',this.subs);
         this.subs.forEach(watcher=>{
             watcher.update()
         })

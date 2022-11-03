@@ -15,6 +15,8 @@ export function mountComponent(vm,el){
     }
     // 更新数据
     // constructor(vm,updateComponent,cb,options){
+    // 该实例最终会被收集到dep中
+    console.log('new render watcher');
     new watcher(vm,updateComponent,()=>{
         callHook(vm,'updated') //订阅
     },true)
@@ -30,6 +32,7 @@ export function lifecycleMixin(Vue){
             vm.$el = patch(vm.$el,vnode)//旧dom，虚拟dom
             vm._vnode = vnode 
         }else{
+            console.log('render函数渲染dom');
             patch(vm.$el,vnode)
         }
     }
