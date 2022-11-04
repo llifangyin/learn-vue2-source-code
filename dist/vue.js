@@ -664,8 +664,8 @@
     var childDep = observer(value); // 给每个属性添加一个dep
 
     var dep = new Dep(); //私有属性
+    // console.log(key,'defineReactive初始化响应式',dep);
 
-    console.log(key, 'defineReactive初始化响应式', dep);
     Object.defineProperty(data, key, {
       get: function get() {
         // console.log(childDep,'childDep');
@@ -677,8 +677,7 @@
           // this.depsId.add(id)
           // ==>
           // dep.addSub(this(watcher)) //dep中subs也添加当前watcher
-
-          console.log('执行 observe 中的getter,获取最新的值', dep, key);
+          // console.log('执行 observe 中的getter,获取最新的值',dep,key);
 
           if (childDep.dep) {
             // 如果有 进行数组收集
@@ -791,11 +790,11 @@
         //watch监听的属性名 key
         // 字符串变成函数
         this.getters = function (_vm) {
-          console.log('$watch的watcher.get方法$,取当前watcher的值赋给watcher.value');
-          console.log('取值过程中，调用的vm.值，触发observe的getter事件，把当前的watch watcher收集到各个属性的dep中');
-          console.log('当set一个值时，会触发当前watch watcher的方法，判断user =true 执行回调函数cb,实现监听'); // a.b.c 深层监听
+          // console.log('$watch的watcher.get方法$,取当前watcher的值赋给watcher.value');
+          // console.log('取值过程中，调用的vm.值，触发observe的getter事件，把当前的watch watcher收集到各个属性的dep中');
+          // console.log('当set一个值时，会触发当前watch watcher的方法，判断user =true 执行回调函数cb,实现监听');
+          // a.b.c 深层监听
           // console.log(_vm,111);
-
           var path = _vm.exprOrfn.split('.');
 
           var obj = vm;
@@ -806,10 +805,10 @@
 
           return obj; //vm.a.b.c
         };
-      }
-
-      console.log('=== watcher-init', this); // 初始化 dom挂载mountComponent中会执行一次
+      } // console.log('=== watcher-init',this);
+      // 初始化 dom挂载mountComponent中会执行一次
       // 初次渲染  保存初始值 (computed模式初始不加载)
+
 
       this.value = this.lazy ? void 0 : this.get(); //保存watcher初始值
     }
@@ -830,15 +829,15 @@
     }, {
       key: "get",
       value: function get() {
-        console.log('$render&&computed$-watcher.get 方法执行'); // 初始化 dom挂载mountComponent中会执行一次
-
+        // console.log('$render&&computed$-watcher.get 方法执行');
+        // 初始化 dom挂载mountComponent中会执行一次
         pushTarget(this); // 给Dep添加watcher => Dep.target = watcher 
         // console.log(this.getters,222);
+        // console.log('Dep.target的值',Dep.target);
+        // console.log('执行render方法或computed方法');
 
-        console.log('Dep.target的值', Dep.target);
-        console.log('执行render方法或computed方法');
-        var value = this.getters.call(this.vm, this);
-        console.log('render 完毕 pop Dep.target'); // 情况1 => 初始化渲染页面
+        var value = this.getters.call(this.vm, this); // console.log('render 完毕 pop Dep.target');
+        // 情况1 => 初始化渲染页面
         //渲染页面 vm._update(vm._render) _s(msg) 拿到with函数vm.msg
         // 渲染过程中会调用一次observe中的getter,执行  该初始化渲染的watcher的deps push了new的dep
         //  new的dep的subs push了 这个初次渲染的watcher实例
@@ -916,7 +915,7 @@
   var pending = false; // 队列处理
 
   function flushWatcher() {
-    console.log(queue, 'queue-真正执行update队列');
+    // console.log(queue,'queue-真正执行update队列');
     queue.forEach(function (watcher) {
       watcher.run(); //防抖执行回调更新函数
       // watcher.cb() // updated 声明周期函数 简易执行回调
@@ -1510,9 +1509,9 @@
     }; // 更新数据
     // constructor(vm,updateComponent,cb,options){
     // 该实例最终会被收集到dep中
+    // console.log('new render watcher');
 
 
-    console.log('new render watcher');
     new watcher(vm, updateComponent, function () {
       callHook(vm, 'updated'); //订阅
     }, true);
@@ -1529,7 +1528,7 @@
 
         vm._vnode = vnode;
       } else {
-        console.log('render函数渲染dom');
+        // console.log('render函数渲染dom');
         patch(vm.$el, vnode);
       }
     };

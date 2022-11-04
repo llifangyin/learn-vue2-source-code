@@ -25,9 +25,9 @@ class watcher{
             //watch监听的属性名 key
             // 字符串变成函数
             this.getters =  function(_vm){
-                console.log('$watch的watcher.get方法$,取当前watcher的值赋给watcher.value');
-                console.log('取值过程中，调用的vm.值，触发observe的getter事件，把当前的watch watcher收集到各个属性的dep中');
-                console.log('当set一个值时，会触发当前watch watcher的方法，判断user =true 执行回调函数cb,实现监听');
+                // console.log('$watch的watcher.get方法$,取当前watcher的值赋给watcher.value');
+                // console.log('取值过程中，调用的vm.值，触发observe的getter事件，把当前的watch watcher收集到各个属性的dep中');
+                // console.log('当set一个值时，会触发当前watch watcher的方法，判断user =true 执行回调函数cb,实现监听');
                 // a.b.c 深层监听
                 // console.log(_vm,111);
                 let path = _vm.exprOrfn.split('.')
@@ -38,7 +38,7 @@ class watcher{
                 return obj //vm.a.b.c
             }
         }
-        console.log('=== watcher-init',this);
+        // console.log('=== watcher-init',this);
         // 初始化 dom挂载mountComponent中会执行一次
 
         // 初次渲染  保存初始值 (computed模式初始不加载)
@@ -57,14 +57,14 @@ class watcher{
     } 
     get(){
 
-        console.log('$render&&computed$-watcher.get 方法执行');
+        // console.log('$render&&computed$-watcher.get 方法执行');
         // 初始化 dom挂载mountComponent中会执行一次
         pushTarget(this) // 给Dep添加watcher => Dep.target = watcher 
         // console.log(this.getters,222);
-        console.log('Dep.target的值',Dep.target);
-        console.log('执行render方法或computed方法');
+        // console.log('Dep.target的值',Dep.target);
+        // console.log('执行render方法或computed方法');
         const value = this.getters.call(this.vm,this)
-        console.log('render 完毕 pop Dep.target');
+        // console.log('render 完毕 pop Dep.target');
         // 情况1 => 初始化渲染页面
          //渲染页面 vm._update(vm._render) _s(msg) 拿到with函数vm.msg
         // 渲染过程中会调用一次observe中的getter,执行  该初始化渲染的watcher的deps push了new的dep
@@ -129,7 +129,7 @@ let has = {}
 let pending = false
 // 队列处理
 function flushWatcher(){
-    console.log(queue,'queue-真正执行update队列');
+    // console.log(queue,'queue-真正执行update队列');
      queue.forEach(watcher=>{
         watcher.run() //防抖执行回调更新函数
         // watcher.cb() // updated 声明周期函数 简易执行回调
