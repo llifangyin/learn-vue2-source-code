@@ -415,6 +415,8 @@
     var ast = parseHTML(el); // 2.将ast语法树 变成render函数
     // (1) ast语法树变成字符串拼接 (2) 字符串变成render函数 with()
 
+    console.log(ast, 333); //???
+
     var code = generate(ast); // _c节点 _v文本 _s变量
     // console.log(code);
 
@@ -438,6 +440,19 @@
 
   starts.data = function (parentVal, childVal) {
     return childVal;
+  }; // 全局组件和内部组件处理 
+
+
+  starts.components = function (parentVal, childVal) {
+    var obj = Object.create(parentVal);
+
+    if (childVal) {
+      for (var key in childVal) {
+        obj[key] = childVal[key];
+      }
+    }
+
+    return obj;
   }; //合并data
   // starts.computed = function(){}
   // starts.watch = function(){}
@@ -464,7 +479,7 @@
   }
 
   function mergeOptions(parent, child) {
-    // console.log(parent,child);
+    // console.log(parent,child,'in-mergeOptions');
     var options = {}; // {created:[a,b,c],data:[a,b]...}
 
     for (var key in parent) {
@@ -480,9 +495,10 @@
       if (starts[key]) {
         options[key] = starts[key](parent[key], child[key]);
       } else {
-        options[key] = child[key];
+        // 合并组件时  全局组件也要合并过来 
+        options[key] = child[key] || parent[key];
       }
-    } // console.log(options,'options');
+    } // console.log(options,'options-mergeOptions');
 
 
     return options;
@@ -497,7 +513,58 @@
       // console.log(mixin);
       // console.log(Vue.options,this.options);
       this.options = mergeOptions(this.options, mixin);
-    };
+    }; // 定义全局方法
+
+
+    Vue.options.components = {}; // 作用将配置项放到vue.options.components上,对应的是extend创建的子组件的类(继承了Vue的属性,并有自己的name和template属性),
+    // 使用的时候再new 初始化子实例,mount挂载子实例
+
+    Vue.component = function (id, componentDef) {
+      componentDef.name = componentDef.name || id; // 创建组件的核心 Vue.extend()
+
+      console.log(componentDef, 'componentDef');
+      componentDef = this.extend(componentDef); //返回一个实例
+      // componentDef 为一个vue子类，额外多了两个属性componentDef:{name:xxx,template:xxx}
+
+      this.options.components[id] = componentDef; // console.log(this.options,'Vue.options');
+    }; // 1. 创建子类 ，初始化子组件，继承父组件属性
+
+
+    Vue.extend = function (options) {
+      var superr = this; // 创建子组件的实例
+      //     // this == vm == vue
+      //     function Vue(options){
+      //         this._init(options)
+      //    }
+
+      var Sub = function vuecomponent(opts) {
+        // new Sub().$mount()
+        // 实例初始化
+        // console.log('子组件实例初始化',this);
+        this._init(opts);
+      }; // console.log(Sub);
+      // 子组件继承父组件中的属性 Vue 类的继承
+
+
+      Sub.prototype = Object.create(superr.prototype); // 子组件中的this指向
+
+      Sub.prototype.constructor = Sub; // 将父组件中的属性合并到子组件中
+      // console.log(this.options,options);
+      //子类继承父类 parent child
+
+      Sub.options = mergeOptions(this.options, options); // console.log(Sub.options,777);
+
+      return Sub;
+    }; // Vue中组件的使用方式
+    // 1. Vue.component()全局注册
+    // 2. 局部注册
+    // 当全局组件和局部组件name值一样，会取局部组件
+    // 3. vue.component()核心实现 Vue.extend() 放回一个组件的实例，.$mount()
+    // 4. 组件间的关系，父子组件，子组件继承父组件的属性options，=>类的继承
+    // 5. 创建一个子组件，就是new 子类
+    // Vue 组件开发：复用 好维护;组件的更新；
+    // 组件的特性：属性，样式，插槽
+
   }
 
   // 获取原来的数组方法
@@ -784,7 +851,7 @@
 
       if (typeof updateComponent === 'function') {
         //初始化$moutned会执行一次渲染：
-        // initMixin => _init => $mounted => (lifecyle)mountComponent => new Watcher
+        // initMixin => _init => $mount => (lifecyle)mountComponent => new Watcher
         this.getters = updateComponent; //更新视图
       } else {
         //watch监听的属性名 key
@@ -1212,9 +1279,14 @@
 
   // 将虚拟dom变成真实dom
   function patch(oldVnode, vnode) {
-    // console.log(oldVnode,vnode);
+    // 组件没有老节点
+    if (!oldVnode) {
+      createEl(vnode);
+    } // console.log(oldVnode,vnode);
     // 第一次渲染 oldnode 是一个真实dom
     // console.log(oldVnode.nodeType);
+
+
     if (oldVnode.nodeType == 1) {
       // 1 创建真实的dom
       // console.log(oldVnode,vnode);
@@ -1448,41 +1520,48 @@
 
 
   function createEl(vnode) {
-    var tag = vnode.tag;
+    vnode.vm;
+        var tag = vnode.tag;
         vnode.data;
         vnode.key;
         var children = vnode.children,
         text = vnode.text;
 
     if (typeof tag === 'string') {
-      // 标签
-      vnode.el = document.createElement(tag);
-      updateProps(vnode);
+      // 组件
+      if (createComponent$1(vnode)) {
+        return vnode.componentInstance.$el;
+      } else {
+        // 标签 
+        vnode.el = document.createElement(tag);
+        updateProps(vnode);
 
-      if (children.length) {
-        children.forEach(function (child) {
-          vnode.el.appendChild(createEl(child));
-        });
-      } // for(let k in data){
-      //     if(k =='style'){
-      //         let styleStr=''
-      //         for(let l in data[k]){
-      //             styleStr += l 
-      //             styleStr += ':'
-      //             styleStr += data[k][l]
-      //             styleStr += ';'
-      //         }
-      //         vnode.el.setAttribute(k,styleStr)
-      //     }else{
-      //         vnode.el.setAttribute(k,data[k])
-      //     }
-      // }
-
+        if (children.length) {
+          children.forEach(function (child) {
+            vnode.el.appendChild(createEl(child));
+          });
+        }
+      }
     } else {
       vnode.el = document.createTextNode(text);
     }
 
     return vnode.el;
+  }
+
+  function createComponent$1(vnode) {
+    console.log(vnode, 'vnode111');
+    var i = vnode.data;
+
+    if ((i = i.hook) && (i = i.init)) {
+      i(vnode); //初始化创建子组件的实例
+    }
+
+    if (vnode.componentInstance) {
+      return true;
+    }
+
+    return false;
   } // vue的渲染流程
   // 数据初始化 => 对模板进行编译 => 变成render函数
   //  => 通过render函数变成vnode => vnode变成真实dom
@@ -1504,7 +1583,6 @@
     // 实现自动更新
 
     var updateComponent = function updateComponent() {
-      // console.log(vm._render());
       vm._update(vm._render());
     }; // 更新数据
     // constructor(vm,updateComponent,cb,options){
@@ -1524,6 +1602,7 @@
       var prevVnode = vm._vnode; //首次渲染，_vnode为null
 
       if (!prevVnode) {
+        console.log(vm.$el, '111111');
         vm.$el = patch(vm.$el, vnode); //旧dom，虚拟dom
 
         vm._vnode = vnode;
@@ -1547,27 +1626,36 @@
 
   function initMixin(Vue) {
     Vue.prototype._init = function (options) {
-      var vm = this;
-      vm.$options = mergeOptions(Vue.options, options);
+      var vm = this; // console.log(Vue.options,this.contructor,1,options);
+      // vm.$options = mergeOptions(Vue.options,options) 
+      // console.log(this.constructor.options,options,'mergeOptions--init');
+
+      vm.$options = mergeOptions(this.constructor.options, options); // console.log(vm.$options,'$options');
+
       callHook(vm, 'beforecreated'); // init 状态
 
       initState(vm);
       callHook(vm, 'created'); //渲染模板 el
 
+      console.log(vm.$options.el, 'el');
+
       if (vm.$options.el) {
-        vm.$mounted(vm.$options.el);
+        vm.$mount(vm.$options.el);
       }
-    }; // 创建$mounted
+    }; // 创建$mount
 
 
-    Vue.prototype.$mounted = function (el) {
+    Vue.prototype.$mount = function (el) {
       // console.log(el);
       // el template render
       var vm = this;
       var options = vm.$options;
-      el = document.querySelector(el);
-      vm.$el = el; // 真实dom
-      // 没有render函数
+
+      if (el) {
+        el = document.querySelector(el);
+        vm.$el = el; // 真实dom
+      } // 没有render函数
+
 
       if (!options.render) {
         var template = options.template; // 没有template option 
@@ -1576,28 +1664,31 @@
         if (!template && el) {
           // 获取Html
           el = el.outerHTML; //html字符串
-          // <div id="app">hello {{msg}} </div>
-          // 变成ast语法树 ,将ast语法树变成render函数
+        } else {
+          el = template;
+        }
 
-          var render = compileToFunction(el); // console.log(render);
-          // (1) 将render函数变成vnode
+        console.log(el, 'outhmtl'); // <div id="app">hello {{msg}} </div>
+        // 变成ast语法树 ,将ast语法树变成render函数
 
-          options.render = render; // (2) 将vnode变成真实DOM放到页面中
-        } // 挂载组件
-        // 1.vm._render将render函数变成虚拟dom
-        // 2. vm._update 将vnode变成真实dom
-        // console.log(vm,el);
+        var render = compileToFunction(el);
+        console.log(render, 'render'); // (1) 将render函数变成vnode
+
+        options.render = render; // (2) 将vnode变成真实DOM放到页面中
+      } // 挂载组件
+      // 1.vm._render将render函数变成虚拟dom
+      // 2. vm._update 将vnode变成真实dom
+      // console.log(vm,el);
 
 
-        mountComponent(vm);
-      }
+      mountComponent(vm);
     };
   }
 
   function renderMixin(Vue) {
     // 节点 创建标签
     Vue.prototype._c = function () {
-      return createElement.apply(void 0, arguments);
+      return createElement.apply(void 0, [this].concat(Array.prototype.slice.call(arguments)));
     }; // 文本
 
 
@@ -1619,14 +1710,61 @@
     };
   } // 创建元素
 
-  function createElement(tag) {
-    var data = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+  function createElement(vm, tag) {
+    var data = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
-    for (var _len = arguments.length, children = new Array(_len > 2 ? _len - 2 : 0), _key = 2; _key < _len; _key++) {
-      children[_key - 2] = arguments[_key];
+    for (var _len = arguments.length, children = new Array(_len > 3 ? _len - 3 : 0), _key = 3; _key < _len; _key++) {
+      children[_key - 3] = arguments[_key];
     }
 
-    return vnode(tag, data, data.key, children);
+    // 创建1.标签 2.组件
+    // 判断标签还是组件
+    if (isReserved(tag)) {
+      return vnode(vm, tag, data, data.key, children);
+    } else {
+      // 创建组件 拿到子组件
+      var Ctor = vm.$options['components'][tag]; // console.log(vm.$options,2222);
+      // 创建自定义组件
+
+      return createComponent(vm, tag, data, children, Ctor);
+    }
+  } // 创建组件的虚拟dom
+
+
+  function createComponent(vm, tag, data, children, Ctor) {
+    // console.log(Ctor,typeof Ctor,'{name:f vueconpoent}');
+    // 对象 {name:'xx',componet:'xx'}
+    // console.log(typeof Ctor,'ctor');
+    if (_typeof(Ctor) == 'object') {
+      // console.log(vm.constructor.extend,'vm.constructor.extend == Vue.extend');
+      // vm.constructor == Vue构造函数Vue,它的extend函数也可以写成Vue.extend需要引入Vue
+      Ctor = vm.constructor.extend(Ctor); //返回一个子类
+
+      console.log(Ctor, 'vue的子类'); // 添加一个方法
+      // console.log(vnode(vm,'vue-component'+tag,data,undefined,{Ctor,children}),222);
+    }
+
+    data.hook = {
+      init: function init(vnode) {
+        // 组件的初始化
+        // 创建实例
+        console.log(vnode, 'hook.init');
+        var child = vnode.componentInstance = new vnode.componentOptions.Ctor({});
+        console.log(child, '子类实例');
+        console.log(child.$el, 'child.$el');
+        child.$mount(); // $el
+      }
+    }; // 为什么是'vm'
+
+    return vnode('vm', 'vue-component' + '-' + tag, data, undefined, undefined, undefined, {
+      Ctor: Ctor,
+      children: children
+    });
+  } // 是否是html标签
+
+
+  function isReserved(tag) {
+    return ['a', 'div', 'button', 'span', 'input', 'ul', 'li', 'img', 'ol', 'h1', 'h2', 'h3', 'h4', 'h5', 'p', 'textarea'].includes(tag);
   } // 创建文本
 
 
@@ -1635,19 +1773,21 @@
   } // 创建虚拟dom
 
 
-  function vnode(tag, data, key, children, text) {
+  function vnode(vm, tag, data, key, children, text, componentOptions) {
     return {
+      vm: vm,
       tag: tag,
       data: data,
       key: key,
       children: children,
-      text: text
+      text: text,
+      componentOptions: componentOptions
     };
   }
 
   function Vue(options) {
     this._init(options);
-  } // 给vue.prototype添加_init(initState(),$mounted)方法 ,$mounted方法 把挂载el内的html转为render字符串，转为虚拟dom，渲染成真实dom
+  } // 给vue.prototype添加_init(initState(),$mount)方法 ,$mount方法 把挂载el内的html转为render字符串，转为虚拟dom，渲染成真实dom
   // initState方法在initState中定义执行initProps,initData,initWatch,initMethods,initComputed等初始化函数
 
 

@@ -10,11 +10,22 @@ export const HOOKS = [
     "destroyed"
 ]
 // 策略模式
-let starts = {}
+let starts = {} 
 starts.data = function(parentVal,childVal){
     return childVal
 
-}//合并data
+}
+// 全局组件和内部组件处理 
+starts.components = function(parentVal,childVal){
+    const obj = Object.create(parentVal)
+    if(childVal){
+        for(let key in childVal){
+            obj[key] = childVal[key]
+        }
+    }
+    return obj
+}
+//合并data
 // starts.computed = function(){}
 // starts.watch = function(){}
 // starts.methods = function(){}
@@ -39,7 +50,7 @@ function mergeHooks(parentVal,childVal){
 }
 
 export function mergeOptions(parent,child){
-    // console.log(parent,child);
+    // console.log(parent,child,'in-mergeOptions');
     const options = {}
     // {created:[a,b,c],data:[a,b]...}
     for(let key in parent){
@@ -53,9 +64,10 @@ export function mergeOptions(parent,child){
         if(starts[key]){
             options[key] = starts[key](parent[key],child[key])
         }else{
-            options[key] = child[key]
+            // 合并组件时  全局组件也要合并过来 
+            options[key] = child[key] || parent[key]
         }
     }
-    // console.log(options,'options');
+    // console.log(options,'options-mergeOptions');
     return options
 }

@@ -19,7 +19,7 @@ class watcher{
         // 判断
         if(typeof updateComponent === 'function'){
             //初始化$moutned会执行一次渲染：
-            // initMixin => _init => $mounted => (lifecyle)mountComponent => new Watcher
+            // initMixin => _init => $mount => (lifecyle)mountComponent => new Watcher
             this.getters = updateComponent //更新视图
         }else{
             //watch监听的属性名 key

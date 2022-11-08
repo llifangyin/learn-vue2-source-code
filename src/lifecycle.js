@@ -7,10 +7,8 @@ export function mountComponent(vm,el){
     // 更新组件的方法
     // 1.vm._render将render函数变成虚拟dom
     // 2. vm._update 将vnode变成真实dom 
-    
     // 实现自动更新
     let updateComponent = ()=>{
-        // console.log(vm._render());
         vm._update(vm._render())
     }
     // 更新数据
@@ -29,6 +27,7 @@ export function lifecycleMixin(Vue){
         // 需要区分首次渲染，还是更新
         let prevVnode = vm._vnode //首次渲染，_vnode为null
         if(!prevVnode){
+            console.log(vm.$el,'111111');
             vm.$el = patch(vm.$el,vnode)//旧dom，虚拟dom
             vm._vnode = vnode 
         }else{

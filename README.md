@@ -17,7 +17,7 @@ npm run dev
 ## 初始化Vue
 + Vue对象封装 
 + Vue.prototype._init ==> initState(initProps,initData,initWatch,initMethods,initComputed)
-+ Vue.prototype.$mounted: 处理数据挂载DOM (先初始化数据 ==> 将模板进行编译 ==> 变成render函数 ==> 生成虚拟节点 ==> 变成真实dom ==> 放到页面)
++ Vue.prototype.$mount: 处理数据挂载DOM (先初始化数据 ==> 将模板进行编译 ==> 变成render函数 ==> 生成虚拟节点 ==> 变成真实dom ==> 放到页面)
 
 ## vue2数据劫持
 + initData里 执行obsever(data)
@@ -38,7 +38,7 @@ npm run dev
 
 ## 模板编译
 init初始化后，开始模板编译步骤详见生命周期
-1. 判断Has el Option 有直接进行下一步，没有调用vm.$mounted方法
+1. 判断Has el Option 有直接进行下一步，没有调用vm.$mount方法
 2. 判断Has template option ?有进行render function :没有编译模板 compile el's outerHTML as template......
 3. 开始编译:获取dom,创建ast语法树
 
@@ -56,7 +56,7 @@ init初始化后，开始模板编译步骤详见生命周期
 + callHook(vm,'beforecreated')
 + initState 初始化数据observer对属性进行defineReactive数据劫持 => 检测变化 => 进行收集dep => dep.notify =>wacher.update更新dom
 + callHook(vm,'created')
-+ vm.$mounted(vm.$options.el)//渲染模板 ast语法树=> render函数 => mountComponent
++ vm.$mount(vm.$options.el)//渲染模板 ast语法树=> render函数 => mountComponent
 + callHook(vm,'beforeMounted')
 + new watcher(vm,updateComponent,()=>{**callHook(vm,'updated')**},true)
 + callHook(vm,'mounted')

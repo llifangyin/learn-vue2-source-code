@@ -8,7 +8,7 @@ function Vue(options){
      this._init(options)
 }
 
-// 给vue.prototype添加_init(initState(),$mounted)方法 ,$mounted方法 把挂载el内的html转为render字符串，转为虚拟dom，渲染成真实dom
+// 给vue.prototype添加_init(initState(),$mount)方法 ,$mount方法 把挂载el内的html转为render字符串，转为虚拟dom，渲染成真实dom
 // initState方法在initState中定义执行initProps,initData,initWatch,initMethods,initComputed等初始化函数
 initMixin(Vue) 
 

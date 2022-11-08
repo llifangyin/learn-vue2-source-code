@@ -6,26 +6,33 @@ export function initMixin(Vue){
 
     Vue.prototype._init = function(options){
         let vm = this
-        vm.$options = mergeOptions(Vue.options,options) 
+        // console.log(Vue.options,this.contructor,1,options);
+        // vm.$options = mergeOptions(Vue.options,options) 
+        // console.log(this.constructor.options,options,'mergeOptions--init');
+        vm.$options = mergeOptions(this.constructor.options,options) 
+        // console.log(vm.$options,'$options');
         callHook(vm,'beforecreated')
         // init 状态
         initState(vm)
         callHook(vm,'created')
         
         //渲染模板 el
+        console.log(vm.$options.el,'el');
         if(vm.$options.el){
-            vm.$mounted(vm.$options.el)
+            vm.$mount(vm.$options.el)
         }
     }
 
-    // 创建$mounted
-    Vue.prototype.$mounted = function(el){
+    // 创建$mount
+    Vue.prototype.$mount = function(el){
         // console.log(el);
         // el template render
         let vm = this
         let options = vm.$options
-        el = document.querySelector(el)
-        vm.$el = el // 真实dom
+        if(el){
+            el = document.querySelector(el)
+            vm.$el = el // 真实dom
+        }
         // 没有render函数
         if(!options.render){
             let template = options.template
@@ -34,19 +41,22 @@ export function initMixin(Vue){
             if(!template && el){
                 // 获取Html
                 el = el.outerHTML //html字符串
-                // <div id="app">hello {{msg}} </div>
-                // 变成ast语法树 ,将ast语法树变成render函数
-                let render = compileToFunction(el)
-                // console.log(render);
-                // (1) 将render函数变成vnode
-                options.render = render
-                // (2) 将vnode变成真实DOM放到页面中
+            }else{
+                el = template
             }
-            // 挂载组件
-            // 1.vm._render将render函数变成虚拟dom
-            // 2. vm._update 将vnode变成真实dom
-            // console.log(vm,el);
-            mountComponent(vm,el)
+            console.log(el,'outhmtl');
+            // <div id="app">hello {{msg}} </div>
+            // 变成ast语法树 ,将ast语法树变成render函数
+            const render = compileToFunction(el)
+            console.log(render,'render');
+            // (1) 将render函数变成vnode
+            options.render = render
+            // (2) 将vnode变成真实DOM放到页面中
         }
+        // 挂载组件
+        // 1.vm._render将render函数变成虚拟dom
+        // 2. vm._update 将vnode变成真实dom
+        // console.log(vm,el);
+        mountComponent(vm,el)
     }
 }

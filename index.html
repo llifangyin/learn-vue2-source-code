@@ -7,13 +7,14 @@
     <title>vue2 sourcecode</title>
 </head>
 <body>
+    hello  
+    <h2>
+    </h2>
+    <h2>张三</h2>
     <div id="app"  style="color:#333;margin:10px;" >
-        hello  
-        <h2>
-        </h2>
-        <h2>张三</h2>
-        {{ name }}
+        <my-button></my-button>
     </div>
+    <!-- {{ name }} -->
     <!-- {{fullName}} -->
     <!-- <h2>{{arr}}</h2>
     {{msg.name}} -->
@@ -33,6 +34,12 @@
                 // console.log('mixin created b');
             }
         })
+
+        // 全局组件
+        // Vue.component 该方法将配置项添加到Vue.options.components[name]上
+        Vue.component('my-button',{
+            template:'<button>我的按钮</button>'
+        })
         
        let vm=  new Vue({
             el:'#app',
@@ -41,7 +48,7 @@
                 return {
                     // msg : 'this is a msg',
                     // msg:{name:'xxx'},
-                    name:'this is a name',
+                    // name:'this is a name',
                     // firstName:'Cobe',
                     // lastName:'Bryant',
                     // arr:[1,2,3],
@@ -53,6 +60,7 @@
                     // e:111
                 }
             },
+            
             created(){
                 // console.log('created 555');
             },
@@ -63,9 +71,9 @@
 
             },
             watch:{
-                name(newVal,oldVal){
-                    console.log(11111,newVal,'watch-name');
-                },
+                // name(newVal,oldVal){
+                //     console.log(11111,newVal,'watch-name');
+                // },
                 // msg(newVal,oldVal){
                 //     console.log(newVal,'msg');
                 // },
@@ -118,7 +126,7 @@
                 }
             }
         })
-        // .$mounted("#app") == el:#app
+        // .$mount("#app") == el:#app
         // console.log(vm._data.msg,111 );console
         // console.log(vm._data.a.b,111 );
         // vm._data.msg =  'this is not a msg'

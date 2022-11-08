@@ -1,7 +1,7 @@
 export function renderMixin(Vue){
     // 节点 创建标签
     Vue.prototype._c = function(){
-        return createElement(...arguments)
+        return createElement(this,...arguments)
     }
     // 文本
     Vue.prototype._v = function(text){
@@ -21,8 +21,51 @@ export function renderMixin(Vue){
 
 
 // 创建元素
-function createElement(tag,data={},...children){
-    return vnode(tag,data,data.key,children)
+function createElement(vm,tag,data={},...children){
+    // 创建1.标签 2.组件
+    // 判断标签还是组件
+    if(isReserved(tag)){
+        return vnode(vm,tag,data,data.key,children)
+    }else{
+        // 创建组件 拿到子组件
+        const Ctor = vm.$options['components'][tag]
+        // console.log(vm.$options,2222);
+        // 创建自定义组件
+        return createComponent(vm,tag,data,children,Ctor)
+    }
+}
+// 创建组件的虚拟dom
+function createComponent(vm,tag,data,children,Ctor){
+    // console.log(Ctor,typeof Ctor,'{name:f vueconpoent}');
+    // 对象 {name:'xx',componet:'xx'}
+    // console.log(typeof Ctor,'ctor');
+    if(typeof Ctor =='object'){
+        // console.log(vm.constructor.extend,'vm.constructor.extend == Vue.extend');
+        // vm.constructor == Vue构造函数Vue,它的extend函数也可以写成Vue.extend需要引入Vue
+        Ctor = vm.constructor.extend(Ctor) //返回一个子类
+        console.log(Ctor,'vue的子类');
+        // 添加一个方法
+        // console.log(vnode(vm,'vue-component'+tag,data,undefined,{Ctor,children}),222);
+    }
+    data.hook = {
+        init(vnode){ // 组件的初始化
+            // 创建实例
+            console.log(vnode,'hook.init');
+            let child = vnode.componentInstance = new vnode.componentOptions.Ctor({})
+            console.log(child,'子类实例');
+            console.log(child.$el,'child.$el');
+
+            child.$mount() // $el
+        }
+    }
+    // 为什么是'vm'
+    return vnode('vm','vue-component'+'-'+ tag,data,undefined,undefined,undefined,{Ctor,children})
+}
+
+// 是否是html标签
+function isReserved(tag){
+    return ['a','div','button','span','input','ul','li',
+            'img','ol','h1','h2','h3','h4','h5','p','textarea'].includes(tag)
 }
 
 // 创建文本
@@ -30,12 +73,14 @@ function createText(text){
     return vnode(undefined,undefined,undefined,undefined,text)
 }
 // 创建虚拟dom
-function vnode(tag,data,key,children,text){
+function vnode(vm,tag,data,key,children,text,componentOptions){
     return {
+        vm,
         tag,
         data,
         key,
         children,
-        text
+        text,
+        componentOptions
     }
 }

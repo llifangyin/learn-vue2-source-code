@@ -1,5 +1,10 @@
 // 将虚拟dom变成真实dom
 export function patch(oldVnode,vnode){
+    // 组件没有老节点
+    if(!oldVnode){
+        createEl(vnode)
+    }
+
     // console.log(oldVnode,vnode);
     // 第一次渲染 oldnode 是一个真实dom
     // console.log(oldVnode.nodeType);
@@ -222,38 +227,39 @@ function updateProps(vnode,oldProps={}){//第一次属性
 
 // 创建真实dom
 export function createEl(vnode){
-    let {tag,data,key,children,text} = vnode
+    let {vm,tag,data,key,children,text} = vnode
     if(typeof tag === 'string'){
-        // 标签
-        vnode.el = document.createElement(tag)
-        updateProps(vnode)
-        if(children.length){
-            children.forEach(child=>{
-                vnode.el.appendChild(createEl(child))
-            })
-        }
-        // for(let k in data){
-        //     if(k =='style'){
-        //         let styleStr=''
-        //         for(let l in data[k]){
-        //             styleStr += l 
-        //             styleStr += ':'
-        //             styleStr += data[k][l]
-        //             styleStr += ';'
-        //         }
-        //         vnode.el.setAttribute(k,styleStr)
+        // 组件
+        if(createComponent(vnode)){
+            return vnode.componentInstance.$el
 
-        //     }else{
-        //         vnode.el.setAttribute(k,data[k])
-        //     }
-        // }
-        
+        }else{
+        // 标签 
+            vnode.el = document.createElement(tag)
+            updateProps(vnode)
+            if(children.length){
+                children.forEach(child=>{
+                    vnode.el.appendChild(createEl(child))
+                })
+            }
+        }
     }else{
         vnode.el = document.createTextNode(text)
     }
     return vnode.el
 }
 
+function createComponent(vnode){
+    console.log(vnode,'vnode111');
+    let i = vnode.data
+    if((i = i.hook)&& (i= i.init)){
+        i(vnode) //初始化创建子组件的实例
+    }
+    if(vnode.componentInstance){
+        return true
+    }
+    return false
+}
 
 // vue的渲染流程
 // 数据初始化 => 对模板进行编译 => 变成render函数

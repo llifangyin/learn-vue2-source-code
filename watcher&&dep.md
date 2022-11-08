@@ -1,6 +1,6 @@
 # watcher与dep的关系程序运行分析
 
-## 初始化执行 _init => initState() + vm.$mounted
+## 初始化执行 _init => initState() + vm.$mount
 
 ###  initState => initData + initWatch + initComputed
 
@@ -35,7 +35,7 @@ for(let key in computed){
 + 判断如果Dep.target有，收集渲染watcher
 
 
-### vm.$mounted 挂载dom 
+### vm.$mount 挂载dom 
 
 1. 拿到vm.el的outerHTML
 2. 转换为ast语法树
