@@ -17,7 +17,7 @@ export function initGlobApi(Vue){
     Vue.component = function(id,componentDef){
         componentDef.name = componentDef.name || id
         // 创建组件的核心 Vue.extend()
-        console.log(componentDef,'componentDef');
+        // console.log(componentDef,'componentDef');
         componentDef = this.extend(componentDef)//返回一个实例
         // componentDef 为一个vue子类，额外多了两个属性componentDef:{name:xxx,template:xxx}
         this.options.components[id] = componentDef

@@ -92,3 +92,49 @@ dep 和watcher的关系 多对多 computed
 3. 从后往前比对
 4. 交叉比对
 5. 暴力比对(创建key:index映射表，while遍历判断oldVnode和newVnode是否存在，插入节点)
+
+
+## component简易实现(无变量的情况)
+例 全局配置
+```js
+Vue.component('my-button',{
+    template:'<button>我的按钮</button>'
+})
+```
+### 方法定义
+1. Vue.extend(option) 创建Vue的子类,合并传过来的options和Vue本身的options配置项
+2. Vue.component(id,componentDef) 将component的全局配置项添加到vue.options.components上，key为name,value为extend后的子类
+
+### 执行过程
+
+1. _init => initState => $mount(el)
+2. $mount中拿到挂载元素的outHTML => render函数
+3. 执行mountComponent=> vm._update(vm._render())该过程中
+4. vm._render()创建虚拟dom,创建标签时，_c() => createElement 判断如果是非保留html标签isReserved(tag), return createComponent
+5. 此时的vnode =
+```js
+// 外层div#app
+// children为下面  
+vnode = {
+    vm:'vm',
+    tag:'vue-component-my-button',
+    data:{
+        hook:{
+            init:function(vnode){
+                let child = vnode.componentInstance = new vnode.componentOptions.Ctor({})
+                child.$mount() // $el
+            }
+        }
+    },
+    key:undefined,
+    children:undefined,
+    text:undefined,
+    componentOptions:{Ctor,children} //Ctor:vue子类,init时会new;children为my-button的值:我的按钮
+}
+ ```
+6. _update() =>  vm.$el = patch(vm.$el,vnode);//vm.$el ("#app")
+
+7. createEl中vnode => 转换真实dom,删除旧dom，插入新dom
+8. 转过过程中，如果是组件，通过createComponent方法获取到 vnode.componentInstance.$el 真实dom，添加到其父容器中
+9. createComponent中执行vnode.hook.init方法 => $mount => el= options.template,拿到组件的outHTML，获取到虚拟dom,再次进行
+mountComponent,patch方法通过判断oldVnode执行createEl返回真实dom，复制到vm.$el上。最终实现子组件的dom渲染。

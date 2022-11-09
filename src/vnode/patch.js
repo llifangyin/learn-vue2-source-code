@@ -1,58 +1,61 @@
 // 将虚拟dom变成真实dom
 export function patch(oldVnode,vnode){
     // 组件没有老节点
+    // console.log(oldVnode,vnode,333);
     if(!oldVnode){
-        createEl(vnode)
-    }
-
-    // console.log(oldVnode,vnode);
-    // 第一次渲染 oldnode 是一个真实dom
-    // console.log(oldVnode.nodeType);
-    if(oldVnode.nodeType == 1){
-        // 1 创建真实的dom
-        // console.log(oldVnode,vnode);
-        let el = createEl(vnode)
-        // console.log(el);
-        // 2 替换 （1）获取父节点 （2） 插入当前节点 （3）老元素删除
-        let parentEl = oldVnode.parentNode
-        // console.log(parentEl);
-        parentEl.insertBefore(el,oldVnode.nextsibling)
-        parentEl.removeChild(oldVnode)
-        return el
+        // console.log(oldVnode,vnode,111);
+        return createEl(vnode)
     }else{
-        // 第二次渲染，oldVnode是虚拟dom,进行比对，进行最小量更新
-        /*  diff算法,最小量更新 */
-        // 1.元素不一样 整体替换
-        if(oldVnode.tag!==vnode.tag){
-            oldVnode.el.parentNode.replaceChild(createEl(vnode,oldVnode.el))
-        }
-        // 2. 标签一样，text属性
-        if(!oldVnode.tag){
-            // 没有tag是文本
-            if(oldVnode.text !== vnode.text){
-                return oldVnode.el.textContent = vnode.text
+        // console.log(oldVnode,vnode);
+        // 第一次渲染 oldnode 是一个真实dom
+        // console.log(oldVnode.nodeType,444);
+        if(oldVnode.nodeType == 1){
+            // 1 创建真实的dom
+            // console.log(oldVnode,vnode);
+            let el = createEl(vnode)
+            // console.log(el,'insertEl');
+            // 2 替换 （1）获取父节点 （2） 插入当前节点 （3）老元素删除
+            let parentEl = oldVnode.parentNode
+            // console.log(parentEl);
+            parentEl.insertBefore(el,oldVnode.nextsibling)
+            parentEl.removeChild(oldVnode)
+            return el
+        }else{
+            // 第二次渲染，oldVnode是虚拟dom,进行比对，进行最小量更新
+            /*  diff算法,最小量更新 */
+            // 1.元素不一样 整体替换
+            if(oldVnode.tag!==vnode.tag){
+                oldVnode.el.parentNode.replaceChild(createEl(vnode,oldVnode.el))
             }
-        }
-        // 2.1 属性不同(标签一样) <div id="a"> => <div id="b">
-        // 方法 1直接复制
-        let el = vnode.el = oldVnode.el
-        updateProps(vnode,oldVnode.data)
-
-        //3. 子元素diff 子元素:
-        let oldChildren = oldVnode.children || []
-        let newChildren = vnode.children || []
-        if(oldChildren.length && newChildren.length){
-            updateChild(oldChildren,newChildren,el)
-        }else if(oldChildren.length){
-            el.innerHtml = ''
-        }else if(newChildren.length){
-            for(let i = 0;i<newChildren.length;i++){
-                let child = newChildren[i]
-                // 添加真实dom
-                el.appendChild(createEl(child))
+            // 2. 标签一样，text属性
+            if(!oldVnode.tag){
+                // 没有tag是文本
+                if(oldVnode.text !== vnode.text){
+                    return oldVnode.el.textContent = vnode.text
+                }
+            }
+            // 2.1 属性不同(标签一样) <div id="a"> => <div id="b">
+            // 方法 1直接复制
+            let el = vnode.el = oldVnode.el
+            updateProps(vnode,oldVnode.data)
+    
+            //3. 子元素diff 子元素:
+            let oldChildren = oldVnode.children || []
+            let newChildren = vnode.children || []
+            if(oldChildren.length && newChildren.length){
+                updateChild(oldChildren,newChildren,el)
+            }else if(oldChildren.length){
+                el.innerHtml = ''
+            }else if(newChildren.length){
+                for(let i = 0;i<newChildren.length;i++){
+                    let child = newChildren[i]
+                    // 添加真实dom
+                    el.appendChild(createEl(child))
+                }
             }
         }
     }
+
 
 }
 function updateChild(oldChildren,newChildren,parent){
@@ -85,13 +88,13 @@ function updateChild(oldChildren,newChildren,parent){
         return map
     }
     let map = makeIndexByKey(oldChildren)
-    console.log(map);
+    // console.log(map);
     // 2. 遍历
     while(oldStartIndex<=oldEndIndex && newStartIndex <= newEndIndex){ //？？
         // 比对 开头元素
         if(isSameVnode(oldStartVnode,newStartVnode)){
             // 从前往后比对
-            console.log('con');
+            // console.log('con');
             patch(oldStartVnode,newStartVnode)
             // 移动指针
             oldStartVnode = oldChildren[++oldStartIndex]
@@ -228,9 +231,11 @@ function updateProps(vnode,oldProps={}){//第一次属性
 // 创建真实dom
 export function createEl(vnode){
     let {vm,tag,data,key,children,text} = vnode
+    // console.log(vnode,555);
     if(typeof tag === 'string'){
         // 组件
         if(createComponent(vnode)){
+            // console.log(vnode.componentInstance.$el,'my-button create');
             return vnode.componentInstance.$el
 
         }else{
@@ -239,22 +244,24 @@ export function createEl(vnode){
             updateProps(vnode)
             if(children.length){
                 children.forEach(child=>{
+                    // 如果child为component return vnode.componentInstance.$el
                     vnode.el.appendChild(createEl(child))
                 })
             }
         }
     }else{
-        vnode.el = document.createTextNode(text)
+        vnode.el = document.createTextNode(text||children)
     }
+    // console.log(vnode.el,11111111111);
     return vnode.el
 }
 
 function createComponent(vnode){
-    console.log(vnode,'vnode111');
     let i = vnode.data
     if((i = i.hook)&& (i= i.init)){
         i(vnode) //初始化创建子组件的实例
     }
+    // console.log(vnode.componentInstance,'componentInstance');
     if(vnode.componentInstance){
         return true
     }

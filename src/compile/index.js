@@ -6,7 +6,6 @@ export function compileToFunction(el){
 
     // 2.将ast语法树 变成render函数
         // (1) ast语法树变成字符串拼接 (2) 字符串变成render函数 with()
-    console.log(ast,333); //???
     let code = generate(ast) // _c节点 _v文本 _s变量
     // console.log(code);
     let render = new Function(`with(this){return ${code}}`)

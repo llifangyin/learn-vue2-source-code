@@ -7,14 +7,14 @@
     <title>vue2 sourcecode</title>
 </head>
 <body>
-    hello  
-    <h2>
-    </h2>
-    <h2>张三</h2>
     <div id="app"  style="color:#333;margin:10px;" >
+        hello  
+        <h2>
+        </h2>
+        <h2>张三</h2>
+        {{ name }}
         <my-button></my-button>
     </div>
-    <!-- {{ name }} -->
     <!-- {{fullName}} -->
     <!-- <h2>{{arr}}</h2>
     {{msg.name}} -->
@@ -46,9 +46,9 @@
             data(){
                 
                 return {
-                    // msg : 'this is a msg',
+                    msg : 'this is a msg',
                     // msg:{name:'xxx'},
-                    // name:'this is a name',
+                    name:'this is a name',
                     // firstName:'Cobe',
                     // lastName:'Bryant',
                     // arr:[1,2,3],
@@ -61,6 +61,9 @@
                 }
             },
             
+            components:{
+                'my-button':{template:'<button>你的按钮</button>'}
+            },
             created(){
                 // console.log('created 555');
             },

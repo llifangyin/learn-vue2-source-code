@@ -26,8 +26,9 @@ export function lifecycleMixin(Vue){
         let vm = this
         // 需要区分首次渲染，还是更新
         let prevVnode = vm._vnode //首次渲染，_vnode为null
+        // console.log(this,66666);
         if(!prevVnode){
-            console.log(vm.$el,'111111');
+            // console.log(vm.$el,1111);
             vm.$el = patch(vm.$el,vnode)//旧dom，虚拟dom
             vm._vnode = vnode 
         }else{

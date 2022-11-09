@@ -17,24 +17,25 @@ export function initMixin(Vue){
         callHook(vm,'created')
         
         //渲染模板 el
-        console.log(vm.$options.el,'el');
+        // console.log(vm.$option.el,11111);
         if(vm.$options.el){
             vm.$mount(vm.$options.el)
         }
     }
 
-    // 创建$mount
+    // 创建$mount 拿到el的outhtml=>ast语法树=>render函数=>mountCompoenet(update(render()))=>执行render函数得到虚拟dom，
+    // 执行update方法，将vm.$el替换为新dom，$el>createEl(vnode)
+    
     Vue.prototype.$mount = function(el){
-        // console.log(el);
+        // console.log(el,'$mount => el');
         // el template render
         let vm = this
         let options = vm.$options
-        if(el){
-            el = document.querySelector(el)
-            vm.$el = el // 真实dom
-        }
+        el = document.querySelector(el)
+        vm.$el = el // 真实dom
         // 没有render函数
         if(!options.render){
+            // console.log(options,el,111111);
             let template = options.template
             // 没有template option 
             // 则 Compile el's outerHTML as template *
@@ -44,11 +45,11 @@ export function initMixin(Vue){
             }else{
                 el = template
             }
-            console.log(el,'outhmtl');
+            // console.log(el,'render.el');
             // <div id="app">hello {{msg}} </div>
             // 变成ast语法树 ,将ast语法树变成render函数
             const render = compileToFunction(el)
-            console.log(render,'render');
+            // console.log(render,'render函数');
             // (1) 将render函数变成vnode
             options.render = render
             // (2) 将vnode变成真实DOM放到页面中
@@ -56,7 +57,7 @@ export function initMixin(Vue){
         // 挂载组件
         // 1.vm._render将render函数变成虚拟dom
         // 2. vm._update 将vnode变成真实dom
-        // console.log(vm,el);
+        // console.log(vm,el,222);
         mountComponent(vm,el)
     }
 }
