@@ -138,3 +138,83 @@ vnode = {
 8. 转过过程中，如果是组件，通过createComponent方法获取到 vnode.componentInstance.$el 真实dom，添加到其父容器中
 9. createComponent中执行vnode.hook.init方法 => $mount => el= options.template,拿到组件的outHTML，获取到虚拟dom,再次进行
 mountComponent,patch方法通过判断oldVnode执行createEl返回真实dom，复制到vm.$el上。最终实现子组件的dom渲染。
+
+## Vuex
+
+### Vuex使用
++ 是一个插件,通过vue.use方法使用。
++ 使用
+```js
+import Vue from 'vue'
+import Vuex from 'vuex'
+Vue.use(Vuex)
+const store = new Vuex.Store({
+    //存放响应式数据 , $store.state.age
+    state:{
+        age:10
+    },
+    //相当于vue中的computed,具有缓存机制
+    getters:{
+        // vue视图中使用多次，只触发一次,$store.getters.changeAge
+        changeAge(state){
+            return state.age + 1
+        }
+    },
+    // 同步修改数据, $store.commit('addAge,1')
+    mutation:{
+        addAge(state,data){
+            state.age += data
+        }
+    },
+    // 异步修改数据, $store.dispatch('addAge',20)
+    actions:{
+        addAge({commit,data}){
+            setTimeout(()=>{
+                commit('addAge',data)
+            },2000)
+        }
+    }
+})
+export default store
+```
+
+###  Vue.use(a)
+```js
+function a(){
+    // 立即执行
+    install:function(vm){
+        // 立即执行   vm : vue实例
+    }
+} 
+Vue.use(a)
+```
+作用
+1. 执行这个方法
+2. 如果这个方法中，有一个install属性，属性是一个方法，会执行a.install,则会执行这个install属性的方法
+3. 如果install函数有参数，第一个参数就是vue的实例
+
+### store实现
+单例模式 创建store类,store的get方法改为通过new Vue创建的实例的值
+```js
+ this._vm = new Vue({
+    data:{
+        state:options.state
+    },
+    computed
+
+})
+```
+### computed实现
+computed,{属性:方法} 使用Vue实例的computed实现,多调一层方法的区别
+
+### mutation和actions实现
+发布订阅者模式:构造函数内部,拿到配置项的mutions和actions,遍历发布执行方法
+
+### moudles实现
+1. 将用户传入的数据 变成树形结构
+2. 收集属性{actions:[]}
+3. state computed
+4. vuex数据保存
+5. 作用域，命名空间
+6. 辅助函数 (mapState mapMutation mapActinos mapGetters)
+
