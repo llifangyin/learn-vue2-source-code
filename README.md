@@ -218,3 +218,57 @@ computed,{属性:方法} 使用Vue实例的computed实现,多调一层方法的�
 5. 作用域，命名空间
 6. 辅助函数 (mapState mapMutation mapActinos mapGetters)
 
+## VueRouter(该demo需要在vue cli创建新项目中把router其换成本vue-router生效)
+
+
+### 1. 路由模式
+> 路由：可以根据路径的改变，返回不同资源。
+#### hash模式:
++ 路径后面有#
++ 不需要向服务器获取新资源
+#### history模式：
++ 默认模式
+
+### 2. 使用vue-router
+
+### 3. 实现vue-router
+
+####  VueRouter类
+1. match核心 把route转换路由组件对应映射表[{},{}] => {'/':{component}}
+2. beforeHooks 收集路由守卫fn,跳转前后执行fn
+2. 根据路由模式mode 去找对应的history = new HashHistory(this)
+3. **HashHistory类** extend **History类** 定义router属性，getCurrentLocation方法，setUpListener方法监听route变化跳转页面
+4. **History**类中定义router属性，current属性，push方法，transitonTo方法
+5. transitonTo(location,cb)方法中执行：
++ 拿到当前路由router /about/a
++ 获取到当前最新路径current hash值  {path: '/about/a', matched: Array(1)}
++ 获取全局守卫队列 queue
++ 执行队列方法后runQueue(queue,iterator,cb) 执行cb即跳转页面方法 渲染组件方法
+
+####  VueRouter.install
+1. 注册全局组件routerLink routerView
+2. 给所有组件绑定_routerRoot属性，Vue.protoType $route=>history.current $router=>this根实例
+
+
+
+
+### 4. 全局组件
++ router-view
+> 函数式组件 functional:true=>render(h,{parent,data}),通过parent获取到根实例route,递归得到recode并层层渲染reutrn h(recode.component,data),
++ router-link
+> <tag onclick={handler}>{this.$slots.default}</tag>
++ Vue.mixin=>  beforeCreate 给每个组件添加router组件实例，
+### 5. 初始化数据
++ 根据路由找到组件  router数据转换 [{},{}] => {'/':{component}}
+
+## 路由守卫触发过程
++ 导航被触发
++ 在失活的组件里调用beforeRouteLeave守卫
++ 调用全局的beforeEach守卫
++ 在重用的组件里调用beforeRouteUpdatae守卫
++ 在路由配置里调用beforeEnter守卫
++ 解析异步路由组件
++ 在被激活的组件调用beforeRouteEnter
++ 调用全局的aftetEach钩子
++ 触发DOM更新
++ 调用beforeRouteEnter守卫中，传给next的回调函数，创建好的实例，会作为回调函数的的参数传入
